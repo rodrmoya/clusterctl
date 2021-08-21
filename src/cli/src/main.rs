@@ -1,3 +1,9 @@
+/*
+ * Raspberry Pi cluster manager.
+ *
+ * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
+ */
+
 use clap::{App, crate_name, crate_version, crate_authors, crate_description, SubCommand};
 
 fn main() {
