@@ -6,7 +6,8 @@
 
 use clap::{App, crate_name, crate_version, crate_authors, crate_description, SubCommand};
 
-fn main() {
+fn main()
+{
     let matches = App::new(crate_name!())
         .version(crate_version!())
         .author(crate_authors!())
@@ -17,6 +18,5 @@ fn main() {
         .get_matches();
 
     if let Some(ref matches) = matches.subcommand_matches("update") {
-    } else if let Some(ref matches) = matches.subcommand_matches("cleanup") {
     }
 }
