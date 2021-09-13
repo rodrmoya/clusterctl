@@ -5,6 +5,7 @@
  */
 
 use std::fs:File;
+use std::include_str;
 use std::process::{Command, ExitStatus, Stdio};
 use tempfile::tempfile;
 
@@ -20,6 +21,11 @@ impl AnsiblePlaybook
         AnsiblePlaybook {
             file_contents: file_contents
         }
+    }
+
+    pub fn get_update_command() -> AnsiblePlaybook
+    {
+        load(include_str!("playbooks/update.yaml"))
     }
 
     pub fn run(&self) -> ExitStatus

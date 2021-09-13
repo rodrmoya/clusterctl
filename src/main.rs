@@ -6,6 +6,8 @@
 
 use clap::{App, crate_name, crate_version, crate_authors, crate_description, SubCommand};
 
+pub mod commands;
+
 fn main()
 {
     let matches = App::new(crate_name!())
@@ -18,5 +20,6 @@ fn main()
         .get_matches();
 
     if let Some(ref matches) = matches.subcommand_matches("update") {
+        commands::run_update();
     }
 }
