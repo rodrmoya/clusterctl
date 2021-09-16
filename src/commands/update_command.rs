@@ -4,7 +4,10 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
+use super::ansible::AnsiblePlaybook;
+
 pub fn run_update()
 {
-    
+    AnsiblePlaybook::get_update_command()
+        .run();
 }
