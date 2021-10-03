@@ -48,10 +48,7 @@ impl AnsiblePlaybook
             .output()
             .expect("Failed to execute ansible-playbook");
 
-        for line in output.stdout {
-            print!("{}", line as char);
-        }
-
+        println!("{}", String::from_utf8_lossy(&output.stdout));
         if output.status.success() {
             return 0;
         }
