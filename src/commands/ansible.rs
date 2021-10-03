@@ -8,6 +8,7 @@ use std::include_str;
 use std::io::Write;
 use std::process::Command;
 use tempfile::NamedTempFile;
+use crate::utils::logging::LogLevel;
 use crate::utils::settings::ClusterSettings;
 
 pub struct AnsiblePlaybook
@@ -34,12 +35,12 @@ impl AnsiblePlaybook
         // Save file to disk
         let mut temp_file = NamedTempFile::new()
             .expect("Could not create temp file");
-        println!("Writing Ansible playbook to {}", temp_file.path().display());
+        settings.log(LogLevel::Trace, format!("Writing Ansible playbook to {}", temp_file.path().display()).as_str());
         temp_file.write_all(self.file_contents.as_bytes())
             .expect("Failed saving playbook to temporary file");
         
         // Run playbook
-        println!("Executing Ansible playbook");
+        settings.log(LogLevel::Info, "Executing Ansible playbook");
         let output = Command::new("ansible-playbook")
             .args([
                 "--inventory",
@@ -49,7 +50,7 @@ impl AnsiblePlaybook
             .output()
             .expect("Failed to execute ansible-playbook");
 
-        println!("{}", String::from_utf8_lossy(&output.stdout));
+        settings.log(LogLevel::Info, format!("{}", String::from_utf8_lossy(&output.stdout)).as_str());
         if output.status.success() {
             return 0;
         }
