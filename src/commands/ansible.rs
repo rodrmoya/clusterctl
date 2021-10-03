@@ -32,6 +32,7 @@ impl AnsiblePlaybook
     {
         // Save file to disk
         let mut temp_file = NamedTempFile::new().unwrap();
+        println!("Writing Ansible playbook to {}", temp_file.path().display());
         write!(temp_file, "{}", self.file_contents)
             .expect("Failed saving playbook to temporary file");
         

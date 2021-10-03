@@ -19,7 +19,10 @@ fn main()
             .about("Update OS and apps on the whole cluster"))
         .get_matches();
 
+    let mut exit_code: i32 = -1;
     if let Some(ref matches) = matches.subcommand_matches("update") {
-        commands::run_update();
+         exit_code = commands::run_update();
     }
+
+    std::process::exit(exit_code);
 }

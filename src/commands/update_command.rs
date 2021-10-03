@@ -6,8 +6,8 @@
 
 use super::ansible::AnsiblePlaybook;
 
-pub fn run_update()
+pub fn run_update() -> i32
 {
     AnsiblePlaybook::get_update_command()
-        .run();
+        .run()
 }
