@@ -8,7 +8,7 @@ use std::include_str;
 use std::io::Write;
 use std::process::Command;
 use tempfile::NamedTempFile;
-use super::ClusterSettings;
+use crate::utils::settings::ClusterSettings;
 
 pub struct AnsiblePlaybook
 {

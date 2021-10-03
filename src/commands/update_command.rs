@@ -5,7 +5,7 @@
  */
 
 use super::ansible::AnsiblePlaybook;
-use super::ClusterSettings;
+use crate::utils::settings::ClusterSettings;
 
 pub fn run_update(settings: &ClusterSettings) -> i32
 {

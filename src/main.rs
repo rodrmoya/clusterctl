@@ -7,7 +7,9 @@
 use clap::{App, Arg, crate_name, crate_version, crate_authors, crate_description, SubCommand};
 
 pub mod commands;
-use commands::ClusterSettings;
+pub mod utils;
+use utils::logging::LogLevel;
+use utils::settings::ClusterSettings;
 
 fn main()
 {
@@ -33,9 +35,9 @@ fn main()
         let settings = ClusterSettings {
             inventory_file: inventory_file.to_string(),
             verbosity_level: match matches.occurrences_of("v") {
-                0 => commands::LogLevel::Info,
-                1 => commands::LogLevel::Debug,
-                2 | _ => commands::LogLevel::Trace
+                0 => LogLevel::Info,
+                1 => LogLevel::Debug,
+                2 | _ => LogLevel::Trace
             }
         };
 
