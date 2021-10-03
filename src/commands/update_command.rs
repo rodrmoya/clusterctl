@@ -6,8 +6,8 @@
 
 use super::ansible::AnsiblePlaybook;
 
-pub fn run_update() -> i32
+pub fn run_update(inventory_file: &str) -> i32
 {
     AnsiblePlaybook::get_update_command()
-        .run()
+        .run(inventory_file)
 }

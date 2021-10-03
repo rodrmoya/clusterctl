@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
-use clap::{App, crate_name, crate_version, crate_authors, crate_description, SubCommand};
+use clap::{App, Arg, crate_name, crate_version, crate_authors, crate_description, SubCommand};
 
 pub mod commands;
 
@@ -14,14 +14,22 @@ fn main()
         .version(crate_version!())
         .author(crate_authors!())
         .about(crate_description!())
-        //.arg(Arg::with_name("config").short("c").value_name("FILE").takes_value(true))
+        .arg(Arg::with_name("inventory")
+            .long("inventory")
+            .short("i")
+            .value_name("Hosts file (in Ansible format)")
+            .takes_value(true))
         .subcommand(SubCommand::with_name("update")
             .about("Update OS and apps on the whole cluster"))
         .get_matches();
 
     let mut exit_code: i32 = -1;
-    if let Some(ref matches) = matches.subcommand_matches("update") {
-         exit_code = commands::run_update();
+    if let Some(ref inventory_file) = matches.value_of("inventory") {
+        if let Some(ref matches) = matches.subcommand_matches("update") {
+            exit_code = commands::run_update(inventory_file);
+        }
+    } else {
+        eprintln!("Inventory file not specified, please specify it via the --inventory option");
     }
 
     std::process::exit(exit_code);

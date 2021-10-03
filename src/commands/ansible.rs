@@ -28,7 +28,7 @@ impl AnsiblePlaybook
         AnsiblePlaybook::load(include_str!("../../playbooks/update.yaml"))
     }
 
-    pub fn run(&self) -> i32
+    pub fn run(&self, inventory_file: &str) -> i32
     {
         // Save file to disk
         let mut temp_file = NamedTempFile::new()
@@ -40,7 +40,11 @@ impl AnsiblePlaybook
         // Run playbook
         println!("Executing Ansible playbook");
         let output = Command::new("ansible-playbook")
-            .args([temp_file.path()])
+            .args([
+                "--inventory",
+                inventory_file,
+                temp_file.path().to_str().unwrap()
+            ])
             .output()
             .expect("Failed to execute ansible-playbook");
 
