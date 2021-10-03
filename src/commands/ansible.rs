@@ -31,12 +31,14 @@ impl AnsiblePlaybook
     pub fn run(&self) -> i32
     {
         // Save file to disk
-        let mut temp_file = NamedTempFile::new().unwrap();
+        let mut temp_file = NamedTempFile::new()
+            .expect("Could not create temp file");
         println!("Writing Ansible playbook to {}", temp_file.path().display());
-        write!(temp_file, "{}", self.file_contents)
+        temp_file.write_all(self.file_contents.as_bytes())
             .expect("Failed saving playbook to temporary file");
         
         // Run playbook
+        println!("Executing Ansible playbook");
         let output = Command::new("ansible-playbook")
             .args([temp_file.path()])
             .output()
