@@ -6,7 +6,7 @@
 
 use std::include_str;
 use std::io::Write;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
 use crate::utils::logging::LogLevel;
 use crate::utils::settings::ClusterSettings;
@@ -42,7 +42,9 @@ impl AnsiblePlaybook
         // Run playbook
         settings.log(LogLevel::Info, "Executing Ansible playbook");
         let output = Command::new("ansible-playbook")
+            .stdin(Stdio::piped())
             .args([
+                "-K",
                 "--inventory",
                 settings.inventory_file.as_str(),
                 temp_file.path().to_str().unwrap()
