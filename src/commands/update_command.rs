@@ -5,9 +5,10 @@
  */
 
 use super::ansible::AnsiblePlaybook;
+use super::ClusterSettings;
 
-pub fn run_update(inventory_file: &str) -> i32
+pub fn run_update(settings: &ClusterSettings) -> i32
 {
     AnsiblePlaybook::get_update_command()
-        .run(inventory_file)
+        .run(settings)
 }

@@ -8,6 +8,7 @@ use std::include_str;
 use std::io::Write;
 use std::process::Command;
 use tempfile::NamedTempFile;
+use super::ClusterSettings;
 
 pub struct AnsiblePlaybook
 {
@@ -28,7 +29,7 @@ impl AnsiblePlaybook
         AnsiblePlaybook::load(include_str!("../../playbooks/update.yaml"))
     }
 
-    pub fn run(&self, inventory_file: &str) -> i32
+    pub fn run(&self, settings: &ClusterSettings) -> i32
     {
         // Save file to disk
         let mut temp_file = NamedTempFile::new()
@@ -42,7 +43,7 @@ impl AnsiblePlaybook
         let output = Command::new("ansible-playbook")
             .args([
                 "--inventory",
-                inventory_file,
+                settings.inventory_file.as_str(),
                 temp_file.path().to_str().unwrap()
             ])
             .output()
