@@ -7,5 +7,16 @@
 mod ansible;
 pub use ansible::AnsiblePlaybook;
 
-mod update_command;
-pub use update_command::run_update;
+use crate::utils::settings::ClusterSettings;
+
+pub fn run_reboot(settings: &ClusterSettings) -> i32
+{
+    AnsiblePlaybook::get_playbook_for_command("reboot")
+        .run(settings)
+}
+
+pub fn run_update(settings: &ClusterSettings) -> i32
+{
+    AnsiblePlaybook::get_playbook_for_command("update")
+        .run(settings)
+}

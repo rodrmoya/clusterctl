@@ -26,6 +26,8 @@ fn main()
             .short("i")
             .value_name("Hosts file (in Ansible format)")
             .takes_value(true))
+        .subcommand(SubCommand::with_name("reboot")
+            .about("Reboot all machines in the cluster"))
         .subcommand(SubCommand::with_name("update")
             .about("Update OS and apps on the whole cluster"))
         .get_matches();
@@ -41,7 +43,9 @@ fn main()
             }
         };
 
-        if let Some(ref matches) = matches.subcommand_matches("update") {
+        if let Some(ref _matches) = matches.subcommand_matches("reboot") {
+            exit_code = commands::run_reboot(&settings);
+        } else if let Some(ref _matches) = matches.subcommand_matches("update") {
             exit_code = commands::run_update(&settings);
         }
     } else {

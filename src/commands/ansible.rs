@@ -25,9 +25,17 @@ impl AnsiblePlaybook
         }
     }
 
-    pub fn get_update_command() -> AnsiblePlaybook
+    pub fn get_playbook_for_command(cmd: &str) -> AnsiblePlaybook
     {
-        AnsiblePlaybook::load(include_str!("../../playbooks/update.yaml"))
+        if cmd == "reboot" {
+            return AnsiblePlaybook::load(include_str!("../../playbooks/reboot.yaml"));
+        } else if cmd == "update" {
+            return AnsiblePlaybook::load(include_str!("../../playbooks/update.yaml"));
+        }
+
+        AnsiblePlaybook {
+            file_contents: String::new()
+        }
     }
 
     pub fn run(&self, settings: &ClusterSettings) -> i32
