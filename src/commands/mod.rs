@@ -28,7 +28,10 @@ pub enum ServiceSubCommand
 }
 
 #[derive(Clap)]
-pub struct DeployServiceCommand;
+pub struct DeployServiceCommand
+{
+    pub service: String
+}
 
 #[derive(Clap)]
 pub struct UpdateCommand;
@@ -42,8 +45,13 @@ pub fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> i32
 pub fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> i32
 {
     return match &sc.subcommand {
-        ServiceSubCommand::Deploy(dsc) => -1
+        ServiceSubCommand::Deploy(ref dsc) => run_deploy_service(settings, sc, dsc)
     };
+}
+
+fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &DeployServiceCommand) -> i32
+{
+    -1
 }
 
 pub fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> i32
