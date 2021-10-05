@@ -57,11 +57,10 @@ impl AnsiblePlaybook
                 settings.inventory_file.as_str(),
                 temp_file.path().to_str().unwrap()
             ])
-            .output()
+            .status()
             .expect("Failed to execute ansible-playbook");
 
-        settings.log(LogLevel::Info, format!("{}", String::from_utf8_lossy(&output.stdout)).as_str());
-        if output.status.success() {
+        if output.success() {
             return 0;
         }
 
