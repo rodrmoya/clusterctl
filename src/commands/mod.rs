@@ -4,10 +4,18 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
+use clap::Clap;
+
 mod ansible;
 pub use ansible::AnsiblePlaybook;
 
-use crate::utils::settings::ClusterSettings;
+use super::ClusterSettings;
+
+#[derive(Clap)]
+pub struct RebootCommand;
+
+#[derive(Clap)]
+pub struct UpdateCommand;
 
 pub fn run_reboot(settings: &ClusterSettings) -> i32
 {

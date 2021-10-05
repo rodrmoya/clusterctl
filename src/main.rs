@@ -4,49 +4,42 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
-use clap::{App, Arg, crate_name, crate_version, crate_authors, crate_description, SubCommand};
+use clap::{Clap, crate_version, crate_authors, crate_description};
 
 pub mod commands;
 pub mod utils;
-use utils::logging::LogLevel;
-use utils::settings::ClusterSettings;
+use commands::{RebootCommand, UpdateCommand};
+
+#[derive(Clap)]
+#[clap(version = crate_version!(), author = crate_authors!(), about = crate_description!())]
+pub struct ClusterSettings
+{
+    #[clap(short, long)]
+    pub inventory: String,
+
+    #[clap(short, long, parse(from_occurrences))]
+    pub verbose: u64,
+
+    #[clap(subcommand)]
+    pub subcommand: SubCommand
+}
+
+#[derive(Clap)]
+pub enum SubCommand
+{
+    Reboot(RebootCommand),
+    Update(UpdateCommand)
+}
 
 fn main()
 {
-    let matches = App::new(crate_name!())
-        .version(crate_version!())
-        .author(crate_authors!())
-        .about(crate_description!())
-        .arg(Arg::with_name("verbose")
-            .short("v")
-            .multiple(true)
-            .help("verbosity level"))
-        .arg(Arg::with_name("inventory")
-            .long("inventory")
-            .short("i")
-            .value_name("Hosts file (in Ansible format)")
-            .takes_value(true))
-        .subcommand(SubCommand::with_name("reboot")
-            .about("Reboot all machines in the cluster"))
-        .subcommand(SubCommand::with_name("update")
-            .about("Update OS and apps on the whole cluster"))
-        .get_matches();
+    let settings: ClusterSettings = ClusterSettings::parse();
 
     let mut exit_code: i32 = -1;
-    if let Some(ref inventory_file) = matches.value_of("inventory") {
-        let settings = ClusterSettings {
-            inventory_file: inventory_file.to_string(),
-            verbosity_level: match matches.occurrences_of("v") {
-                0 => LogLevel::Info,
-                1 => LogLevel::Debug,
-                2 | _ => LogLevel::Trace
-            }
-        };
-
-        if let Some(ref _matches) = matches.subcommand_matches("reboot") {
-            exit_code = commands::run_reboot(&settings);
-        } else if let Some(ref _matches) = matches.subcommand_matches("update") {
-            exit_code = commands::run_update(&settings);
+    if !settings.inventory.is_empty() {
+        exit_code = match settings.subcommand {
+            SubCommand::Reboot(ref rc) => commands::run_reboot(&settings),
+            SubCommand::Update(ref uc) => commands::run_update(&settings)
         }
     } else {
         eprintln!("Inventory file not specified, please specify it via the --inventory option");

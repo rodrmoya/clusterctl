@@ -9,7 +9,7 @@ use std::io::Write;
 use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
 use crate::utils::logging::LogLevel;
-use crate::utils::settings::ClusterSettings;
+use crate::ClusterSettings;
 
 pub struct AnsiblePlaybook
 {
@@ -54,7 +54,7 @@ impl AnsiblePlaybook
             .args([
                 "-K",
                 "--inventory",
-                settings.inventory_file.as_str(),
+                settings.inventory.as_str(),
                 temp_file.path().to_str().unwrap()
             ])
             .status()

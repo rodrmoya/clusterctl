@@ -5,18 +5,13 @@
  */
 
 use super::logging::LogLevel;
-
-pub struct ClusterSettings
-{
-    pub inventory_file: String,
-    pub verbosity_level: LogLevel
-}
+use crate::ClusterSettings;
 
 impl ClusterSettings
 {
     pub fn log(&self, level: LogLevel, msg: &str)
     {
-        let print_it = match self.verbosity_level {
+        let print_it = match self.verbosity_level() {
             LogLevel::Trace => true,
             LogLevel::Debug => !matches!(level, LogLevel::Trace),
             _ => matches!(level, LogLevel::Info)
@@ -24,5 +19,14 @@ impl ClusterSettings
         if print_it {
             println!("[{}]: {}", level.as_ref(), msg);
         }
+    }
+
+    pub fn verbosity_level(&self) -> LogLevel
+    {
+        return match self.verbose {
+            0 => LogLevel::Info,
+            1 => LogLevel::Debug,
+            2 | _ => LogLevel::Trace
+        };
     }
 }
