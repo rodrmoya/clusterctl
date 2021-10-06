@@ -4,11 +4,9 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
-use std::include_str;
 use std::io::Write;
 use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
-use crate::utils::logging::LogLevel;
 use crate::ClusterSettings;
 
 pub struct AnsiblePlaybook
@@ -22,19 +20,6 @@ impl AnsiblePlaybook
     {
         AnsiblePlaybook {
             file_contents: String::from(file_contents)
-        }
-    }
-
-    pub fn get_playbook_for_command(cmd: &str) -> AnsiblePlaybook
-    {
-        if cmd == "reboot" {
-            return AnsiblePlaybook::load(include_str!("../../playbooks/reboot.yaml"));
-        } else if cmd == "update" {
-            return AnsiblePlaybook::load(include_str!("../../playbooks/update.yaml"));
-        }
-
-        AnsiblePlaybook {
-            file_contents: String::new()
         }
     }
 

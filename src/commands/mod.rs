@@ -4,12 +4,17 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
+ use std::include_str;
 use clap::Clap;
 
 mod ansible;
 pub use ansible::AnsiblePlaybook;
 
 use super::ClusterSettings;
+
+// Command names, which are also playbook file names
+const REBOOT_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/reboot.yaml");
+const UPDATE_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/update.yaml");
 
 #[derive(Clap)]
 pub struct RebootCommand;
@@ -38,7 +43,7 @@ pub struct UpdateCommand;
 
 pub fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> i32
 {
-    AnsiblePlaybook::get_playbook_for_command("reboot")
+    AnsiblePlaybook::load(REBOOT_COMMAND_PLAYBOOK)
         .run(settings)
 }
 
@@ -56,6 +61,6 @@ fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Dep
 
 pub fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> i32
 {
-    AnsiblePlaybook::get_playbook_for_command("update")
+    AnsiblePlaybook::load(UPDATE_COMMAND_PLAYBOOK)
         .run(settings)
 }
