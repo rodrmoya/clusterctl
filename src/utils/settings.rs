@@ -21,6 +21,21 @@ impl ClusterSettings
         }
     }
 
+    pub fn log_info(&self, msg: &str)
+    {
+        self.log(LogLevel::Info, msg);
+    }
+
+    pub fn log_debug(&self, msg: &str)
+    {
+        self.log(LogLevel::Debug, msg);
+    }
+
+    pub fn log_trace(&self, msg: &str)
+    {
+        self.log(LogLevel::Trace, msg);
+    }
+
     pub fn verbosity_level(&self) -> LogLevel
     {
         return match self.verbose {
