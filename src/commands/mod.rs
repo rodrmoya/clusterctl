@@ -20,6 +20,7 @@ const UPDATE_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/update.yaml"
 
 const INSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/install-kubernetes.yaml");
 const UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/uninstall-kubernetes.yaml");
+const SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/setup-kubernetes-cluster.yaml");
 
 #[derive(Clap)]
 pub struct RebootCommand;
@@ -68,6 +69,7 @@ fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     settings.log_info(format!("Deploying service '{}' to cluster", &dsc.service).as_str());
     if dsc.service == "kubernetes" {
         playbook.add_playbook(AnsiblePlaybook::load(INSTALL_KUBERNETES_COMMAND_PLAYBOOK));
+        playbook.add_playbook(AnsiblePlaybook::load(SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK));
     } else {
         eprintln!("Unknown service '{}', can't deploy", dsc.service);
         return -1;

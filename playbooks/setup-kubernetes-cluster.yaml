@@ -1,0 +1,62 @@
+- name: Setup cluster nodes
+  hosts: cluster
+  tasks:
+    - name: Ensure nodes have correct hostname
+      become: true
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Ensure all cluster nodes are in /etc/hosts
+      become: true
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          {% for host in groups['cluster'] %}
+          {{ hostvars[host].ansible_host }} {{ host }}
+          {% endfor %}
+
+- name: Setup Kubernetes cluster
+  hosts: cluster
+  vars:
+    - cidr_network: 10.244.0.0/16
+    - token_file: join_token
+  tasks:
+    - name: Reset cluster in all nodes
+      become: true
+      shell: kubeadm reset -f
+
+    - name: Initialize cluster in master node
+      become: true
+      when: "'master1' in inventory_hostname"
+      shell: kubeadm init --pod-network-cidr={{ cidr_network }} --ignore-preflight-errors=DirAvailable--var-lib-etcd --cri-socket /run/containerd/containerd.sock
+      register: master_output
+    
+    - name: Store logs and generated token for future purpose
+      when: "'master1' in inventory_hostname"
+      local_action: copy content={{ master_output.stdout }} dest={{ token_file }}
+
+    - name: Copy required files
+      when: "'master1' in inventory_hostname"
+      become: true
+      shell: |
+        mkdir -p /home/rodrigo/.kube
+        cp -f /etc/kubernetes/admin.conf /home/rodrigo/.kube/config
+        chown -R rodrigo /home/rodrigo/.kube
+
+    - name: Install CNI add-on
+      when: "'master1' in inventory_hostname"
+      shell:
+        kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.12.0/Documentation/kube-flannel.yml
+
+    - name: Copying token to worker nodes
+      become: true
+      when: "not 'master1' in inventory_hostname"
+      copy: src={{ token_file }} dest={{ token_file }}
+
+    - name: Join cluster in all worker nodes
+      become: true
+      when: "not 'master1' in inventory_hostname"
+      shell: |
+        cat join_token | tail -2 > out.sh
+        echo " --cri-socket /run/containerd/containerd.sock" >> out.sh
+        sh out.sh
