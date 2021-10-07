@@ -14,6 +14,11 @@ pub struct AnsiblePlaybook
     file_contents: String
 }
 
+pub struct AnsibleAggregatePlaybook
+{
+    playbooks: Vec<AnsiblePlaybook>
+}
+
 impl AnsiblePlaybook
 {
     pub fn load(file_contents: &str) -> AnsiblePlaybook
@@ -50,5 +55,33 @@ impl AnsiblePlaybook
         }
 
         return -1;
+    }
+}
+
+impl AnsibleAggregatePlaybook
+{
+    pub fn new() -> AnsibleAggregatePlaybook
+    {
+        AnsibleAggregatePlaybook {
+            playbooks: Vec::new()
+        }
+    }
+
+    pub fn add_playbook(&mut self, playbook: AnsiblePlaybook)
+    {
+        self.playbooks.push(playbook);
+    }
+
+    pub fn run(&self, settings: &ClusterSettings) -> i32
+    {
+        let mut exit_code: i32 = -1;
+        for playbook in &self.playbooks {
+            exit_code = playbook.run(settings);
+            if exit_code != 0 {
+                break;
+            }
+        }
+
+        return exit_code;
     }
 }

@@ -1,0 +1,131 @@
+- name: Install Kubernetes
+  block:
+    - name: Ensure swap is disabled on all nodes
+      become: true
+      shell: swapoff -a
+    
+    - name: Ensure Swap entries are commented in /etc/fstab
+      become: true
+      replace:
+        path: /etc/fstab
+        regexp: '(^/.*swap*)'
+        replace: '# \1'
+
+    - name: Ensure basic Kubernetes dependencies are installed
+      become: true
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg2
+          - software-properties-common
+    
+    - name: Ensure Google Cloud GPG certificate is installed
+      become: true
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+    - name: Ensure Kubernetes APT repository is configured
+      become: true
+      apt_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+        filename: kubernetes
+    
+    - name: Ensure Kubernetes tools are installed
+      become: true
+      apt:
+        update_cache: yes
+        pkg:
+          - kubeadm
+          - kubelet
+          - kubectl
+    
+    - name: Ensure Kubernetes tools are in hold state
+      become: true
+      dpkg_selections:
+        name: kubeadm
+        selection: hold
+    - become: true
+      dpkg_selections:
+        name: kubelet
+        selection: hold
+    - become: true
+      dpkg_selections:
+        name: kubectl
+        selection: hold
+    
+    - name: Ensure kubelet service is running
+      become: true
+      systemd:
+        state: started
+        enabled: yes
+        name: kubelet.service
+
+- name: Setup containerd
+  block:
+    - name: Ensure overlay kernel module is loaded
+      become: true
+      modprobe:
+        name: overlay
+        state: present
+    
+    - name: Ensure br_netfilter kernel module is loaded
+      become: true
+      modprobe:
+        name: br_netfilter
+        state: present
+    
+    - name: Ensure containerd configuration is correct
+      become: true
+      copy:
+        dest: "/etc/modules-load.d/containerd.conf"
+        content: |
+          overlay
+          br_netfilter
+    
+    - name: Ensure sysctl setup for K8s+containerd is correct
+      become: true
+      copy:
+        dest: "/etc/sysctl.d/99-kubernetes-cri.conf"
+        content: |
+          net.bridge.birdge-nf-call-iptables = 1
+          net.ipv4.ip_forward = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+      register: result
+
+    - shell: sysctl --system
+      become: yes
+      when: result.changed
+
+    - name: Ensure containerd is installed
+      become: true
+      apt:
+        update_cache: yes
+        pkg: containerd
+    
+    - name: Ensure containerd config file exists
+      become: true
+      shell: |
+        mkdir -p /etc/containerd
+        containerd config default | tee /etc/containerd/config.toml
+
+    - name: Ensure containerd uses systemd cgroup
+      become: true
+      lineinfile:
+        path: /etc/containerd/config.toml
+        insertafter: "[plugins.\"io.containerd.grpc.v1.cri\".containerd.runtimes.runc.options]"
+        line: "          SystemdCgroup = true"
+
+    - name: Ensure containerd package is in hold state
+      become: true
+      dpkg_selections:
+        name: containerd
+        selection: hold
+    
+    - name: Ensure containerd service is running
+      become: true
+      systemd:
+        state: restarted
+        enabled: yes
+        name: containerd.service

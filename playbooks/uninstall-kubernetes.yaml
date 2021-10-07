@@ -1,0 +1,30 @@
+- name: Uninstall Kubernetes
+  block:
+    - name: Ensure Kubernetes tools are not in hold state
+      become: true
+      dpkg_selections:
+        name: kubeadm
+        selection: deinstall
+    - become: true
+      dpkg_selections:
+        name: kubelet
+        selection: deinstall
+    - become: true
+      dpkg_selections:
+        name: kubectl
+        selection: deinstall
+
+    - name: Ensure Kubernetes tools are uninstalled
+      become: true
+      apt:
+        state: absent
+        pkg:
+          - kubeadm
+          - kubelet
+          - kubectl
+
+    - name: Ensure Kubernetes repository is removed
+      become: true
+      apt_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+        state: absent
