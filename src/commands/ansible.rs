@@ -42,27 +42,7 @@ impl AnsiblePlaybook
 
     pub fn run(&self, settings: &ClusterSettings) -> i32
     {
-        // Save file to disk
-        let temp_file = self.save_to_file(settings);
-        
-        // Run playbook
-        settings.log_info("Executing Ansible playbook");
-        let output = Command::new("ansible-playbook")
-            .stdin(Stdio::piped())
-            .args([
-                "-K",
-                "--inventory",
-                settings.inventory.as_str(),
-                &temp_file
-            ])
-            .status()
-            .expect("Failed to execute ansible-playbook");
-
-        if output.success() {
-            return 0;
-        }
-
-        return -1;
+        return run_ansible_playbook(settings, vec![self]);
     }
 }
 
@@ -82,31 +62,40 @@ impl AnsibleAggregatePlaybook
 
     pub fn run(&self, settings: &ClusterSettings) -> i32
     {
-        let mut args: Vec<String> = vec![
-            // Ask for password for sudo
-            "-K".to_string(),
-            // Inventory file to use
-            "--inventory".to_string(),
-            settings.inventory.clone()
-            ];
-
+        let mut playbooks: Vec<&AnsiblePlaybook> = Vec::new();
         for playbook in &self.playbooks {
-            let file_name = playbook.save_to_file(settings);
-            args.push(file_name);
+            playbooks.push(&playbook);
         }
-
-        // Run playbook
-        settings.log_info("Executing Ansible playbooks");
-        let output = Command::new("ansible-playbook")
-            .stdin(Stdio::piped())
-            .args(args)
-            .status()
-            .expect("Failed to execute ansible-playbook");
-
-        if output.success() {
-            return 0;
-        }
-
-        return -1;
+        return run_ansible_playbook(settings, playbooks);
     }
+}
+
+fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlaybook>) -> i32
+{
+    let mut args: Vec<String> = vec![
+        // Ask for password for sudo
+        "-K".to_string(),
+        // Inventory file to use
+        "--inventory".to_string(),
+        settings.inventory.clone()
+        ];
+
+    for playbook in &playbooks {
+        let file_name = playbook.save_to_file(settings);
+        args.push(file_name);
+    }
+
+    // Run playbook
+    settings.log_info("Executing Ansible playbooks");
+    let output = Command::new("ansible-playbook")
+        .stdin(Stdio::piped())
+        .args(args)
+        .status()
+        .expect("Failed to execute ansible-playbook");
+
+    if output.success() {
+        return 0;
+    }
+
+    return -1;
 }
