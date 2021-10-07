@@ -1,5 +1,6 @@
 - name: Install Kubernetes
-  block:
+  hosts: cluster
+  tasks:
     - name: Ensure swap is disabled on all nodes
       become: true
       shell: swapoff -a
@@ -63,7 +64,8 @@
         name: kubelet.service
 
 - name: Setup containerd
-  block:
+  hosts: cluster
+  tasks:
     - name: Ensure overlay kernel module is loaded
       become: true
       modprobe:

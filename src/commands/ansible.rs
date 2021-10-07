@@ -9,6 +9,7 @@ use std::process::{Command, Stdio};
 use tempfile::NamedTempFile;
 use crate::ClusterSettings;
 
+// Represents a single Ansible playbook
 pub struct AnsiblePlaybook
 {
     file_contents: String
