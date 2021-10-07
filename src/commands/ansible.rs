@@ -29,14 +29,21 @@ impl AnsiblePlaybook
         }
     }
 
-    pub fn run(&self, settings: &ClusterSettings) -> i32
+    pub fn save_to_file(&self, settings: &ClusterSettings) -> String
     {
-        // Save file to disk
         let mut temp_file = NamedTempFile::new()
             .expect("Could not create temp file");
         settings.log_trace(format!("Writing Ansible playbook to {}", temp_file.path().display()).as_str());
         temp_file.write_all(self.file_contents.as_bytes())
             .expect("Failed saving playbook to temporary file");
+
+        return temp_file.path().to_string_lossy().to_string();
+    }
+
+    pub fn run(&self, settings: &ClusterSettings) -> i32
+    {
+        // Save file to disk
+        let temp_file = self.save_to_file(settings);
         
         // Run playbook
         settings.log_info("Executing Ansible playbook");
@@ -46,7 +53,7 @@ impl AnsiblePlaybook
                 "-K",
                 "--inventory",
                 settings.inventory.as_str(),
-                temp_file.path().to_str().unwrap()
+                &temp_file
             ])
             .status()
             .expect("Failed to execute ansible-playbook");
@@ -75,14 +82,29 @@ impl AnsibleAggregatePlaybook
 
     pub fn run(&self, settings: &ClusterSettings) -> i32
     {
-        let mut exit_code: i32 = -1;
+        let mut args: Vec<String> = vec![
+            "-K".to_string(),
+            "--inventory".to_string(),
+            settings.inventory.clone()
+            ];
+
         for playbook in &self.playbooks {
-            exit_code = playbook.run(settings);
-            if exit_code != 0 {
-                break;
-            }
+            let file_name = playbook.save_to_file(settings);
+            args.push(file_name);
         }
 
-        return exit_code;
+        // Run playbook
+        settings.log_info("Executing Ansible playbooks");
+        let output = Command::new("ansible-playbook")
+            .stdin(Stdio::piped())
+            .args(args)
+            .status()
+            .expect("Failed to execute ansible-playbook");
+
+        if output.success() {
+            return 0;
+        }
+
+        return -1;
     }
 }
