@@ -83,7 +83,9 @@ impl AnsibleAggregatePlaybook
     pub fn run(&self, settings: &ClusterSettings) -> i32
     {
         let mut args: Vec<String> = vec![
+            // Ask for password for sudo
             "-K".to_string(),
+            // Inventory file to use
             "--inventory".to_string(),
             settings.inventory.clone()
             ];
