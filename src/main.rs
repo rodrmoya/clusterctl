@@ -1,11 +1,7 @@
 /*
  * Raspberry Pi cluster manager.
  *
- * Copyright (C) 2020-2021 Rodrigo Moy
-
-    use crate::utils::logging::LogLevel;
-    use crate::utils::logging::LogLevel;
-a <rodrigo@gnome.org>
+ * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
 use clap::{Clap, crate_version, crate_authors, crate_description};
