@@ -79,6 +79,6 @@ mod tests
         assert_eq!(settings.inventory, INVENTORY_FILE);
 
         let verbosity_level = settings.verbosity_level();
-        matches!(verbosity_level, expected_verbosity);
+        assert!(matches!(verbosity_level, expected_verbosity));
     }
 }
