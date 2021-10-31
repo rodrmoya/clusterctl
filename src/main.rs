@@ -4,33 +4,10 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
-use clap::{Clap, crate_version, crate_authors, crate_description};
-
+use clap::Clap;
 pub mod commands;
 pub mod utils;
-use commands::{RebootCommand, ServiceCommand, UpdateCommand};
-
-#[derive(Clap)]
-#[clap(version = crate_version!(), author = crate_authors!(), about = crate_description!())]
-pub struct ClusterSettings
-{
-    #[clap(short, long)]
-    pub inventory: String,
-
-    #[clap(short, long, parse(from_occurrences))]
-    pub verbose: u64,
-
-    #[clap(subcommand)]
-    pub subcommand: SubCommand
-}
-
-#[derive(Clap)]
-pub enum SubCommand
-{
-    Reboot(RebootCommand),
-    Service(ServiceCommand),
-    Update(UpdateCommand)
-}
+use utils::settings::{ClusterSettings, SubCommand};
 
 fn main()
 {
@@ -55,7 +32,7 @@ mod tests
 {
     use clap::Clap;
     use rstest::rstest;
-    use crate::ClusterSettings;
+    use crate::utils::settings::ClusterSettings;
     use crate::utils::logging::LogLevel;
 
     const INVENTORY_FILE: &str = "/tmp/inventory.yaml";

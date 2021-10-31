@@ -4,15 +4,14 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
- use std::include_str;
-use clap::Clap;
+use std::include_str;
 
 mod ansible;
 pub use ansible::AnsiblePlaybook;
 
 use crate::commands::ansible::AnsibleAggregatePlaybook;
 
-use super::ClusterSettings;
+use crate::utils::settings::*;
 
 // Command names, which are also playbook file names
 const REBOOT_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/reboot.yaml");
@@ -21,32 +20,6 @@ const UPDATE_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/update.yaml"
 const INSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/install-kubernetes.yaml");
 const UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/uninstall-kubernetes.yaml");
 const SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/setup-kubernetes-cluster.yaml");
-
-#[derive(Clap)]
-pub struct RebootCommand;
-
-#[derive(Clap)]
-pub struct ServiceCommand
-{
-    #[clap(subcommand)]
-    pub subcommand: ServiceSubCommand
-}
-
-#[derive(Clap)]
-pub enum ServiceSubCommand
-{
-    Deploy(ServiceCommandOptions),
-    Delete(ServiceCommandOptions)
-}
-
-#[derive(Clap)]
-pub struct ServiceCommandOptions
-{
-    pub service: String
-}
-
-#[derive(Clap)]
-pub struct UpdateCommand;
 
 pub fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> i32
 {
