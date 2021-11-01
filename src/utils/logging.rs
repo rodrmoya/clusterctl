@@ -7,9 +7,8 @@
 use strum_macros::{AsRefStr, EnumString};
 
 #[derive(Debug, AsRefStr, EnumString)]
-pub enum LogLevel
-{
+pub enum LogLevel {
     Info,
     Debug,
-    Trace
+    Trace,
 }

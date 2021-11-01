@@ -45,22 +45,19 @@ impl CommandRunner for ClusterSettings {
     }
 }
 
-fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> Result<ExitStatus, Error>
-{
+fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> Result<ExitStatus, Error> {
     AnsiblePlaybook::load(REBOOT_COMMAND_PLAYBOOK)
         .run(settings)
 }
 
-fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> Result<ExitStatus, Error>
-{
+fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> Result<ExitStatus, Error> {
     return match &sc.subcommand {
         ServiceSubCommand::Deploy(ref dsc) => run_deploy_service(settings, sc, dsc),
         ServiceSubCommand::Delete(ref dsc) => run_delete_service(settings, sc, dsc)
     };
 }
 
-fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error>
-{
+fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
     settings.log_info(format!("Deploying service '{}' to cluster", &dsc.service).as_str());
@@ -78,8 +75,7 @@ fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     playbook.run(settings)
 }
 
-fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error>
-{
+fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
     settings.log_info(format!("Deleting service '{}' from cluster", &dsc.service).as_str());
@@ -96,8 +92,7 @@ fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     return playbook.run(settings);
 }
 
-fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> Result<ExitStatus, Error>
-{
+fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> Result<ExitStatus, Error> {
     AnsiblePlaybook::load(UPDATE_COMMAND_PLAYBOOK)
         .run(settings)
 }

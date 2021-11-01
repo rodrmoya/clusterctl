@@ -12,8 +12,7 @@ pub mod utils;
 use utils::settings::ClusterSettings;
 use commands::CommandRunner;
 
-fn main() -> Result<(), Error>
-{
+fn main() -> Result<(), Error> {
     let settings: ClusterSettings = ClusterSettings::parse();
 
     match settings.run() {
@@ -23,8 +22,7 @@ fn main() -> Result<(), Error>
 }
 
 #[cfg(test)]
-mod tests
-{
+mod tests {
     use clap::Clap;
     use rstest::rstest;
     use crate::utils::settings::ClusterSettings;
@@ -38,8 +36,7 @@ mod tests
     #[case("-vvv", LogLevel::Trace)]
     fn global_settings_are_correctly_parsed(
         #[case] verbosity_arg: &str,
-        #[case] expected_verbosity: LogLevel)
-    {
+        #[case] expected_verbosity: LogLevel) {
         let settings: ClusterSettings = ClusterSettings::try_parse_from(
             vec!["pi-cluster", verbosity_arg, "--inventory", INVENTORY_FILE, "update"]
         ).unwrap();

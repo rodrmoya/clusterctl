@@ -10,8 +10,7 @@ use super::logging::LogLevel;
 
 #[derive(Clap)]
 #[clap(version = crate_version!(), author = crate_authors!(), about = crate_description!())]
-pub struct ClusterSettings
-{
+pub struct ClusterSettings {
     #[clap(short, long)]
     pub inventory: String,
 
@@ -23,8 +22,7 @@ pub struct ClusterSettings
 }
 
 #[derive(Clap)]
-pub enum SubCommand
-{
+pub enum SubCommand {
     Reboot(RebootCommand),
     Service(ServiceCommand),
     Update(UpdateCommand)
@@ -34,32 +32,27 @@ pub enum SubCommand
 pub struct RebootCommand;
 
 #[derive(Clap)]
-pub struct ServiceCommand
-{
+pub struct ServiceCommand {
     #[clap(subcommand)]
     pub subcommand: ServiceSubCommand
 }
 
 #[derive(Clap)]
-pub enum ServiceSubCommand
-{
+pub enum ServiceSubCommand {
     Deploy(ServiceCommandOptions),
     Delete(ServiceCommandOptions)
 }
 
 #[derive(Clap)]
-pub struct ServiceCommandOptions
-{
+pub struct ServiceCommandOptions {
     pub service: String
 }
 
 #[derive(Clap)]
 pub struct UpdateCommand;
 
-impl ClusterSettings
-{
-    pub fn log(&self, level: LogLevel, msg: &str)
-    {
+impl ClusterSettings {
+    pub fn log(&self, level: LogLevel, msg: &str) {
         let print_it = match self.verbosity_level() {
             LogLevel::Trace => true,
             LogLevel::Debug => !matches!(level, LogLevel::Trace),
@@ -70,23 +63,19 @@ impl ClusterSettings
         }
     }
 
-    pub fn log_info(&self, msg: &str)
-    {
+    pub fn log_info(&self, msg: &str) {
         self.log(LogLevel::Info, msg);
     }
 
-    pub fn log_debug(&self, msg: &str)
-    {
+    pub fn log_debug(&self, msg: &str) {
         self.log(LogLevel::Debug, msg);
     }
 
-    pub fn log_trace(&self, msg: &str)
-    {
+    pub fn log_trace(&self, msg: &str) {
         self.log(LogLevel::Trace, msg);
     }
 
-    pub fn verbosity_level(&self) -> LogLevel
-    {
+    pub fn verbosity_level(&self) -> LogLevel {
         return match self.verbose {
             0 => LogLevel::Info,
             1 => LogLevel::Debug,
