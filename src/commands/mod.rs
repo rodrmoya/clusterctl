@@ -23,6 +23,13 @@ const INSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/
 const UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/uninstall-kubernetes.yaml");
 const SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/setup-kubernetes-cluster.yaml");
 
+const INSTALL_DOCKER_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/install-docker.yaml");
+const UNINSTALL_DOCKER_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/uninstall-docker.yaml");
+
+// Service names
+const SERVICE_NAME_DOCKER: &str = "docker";
+const SERVICE_NAME_KUBERNETES: &str = "kubernetes";
+
 pub trait CommandRunner {
     fn run(&self) -> Result<ExitStatus, Error>;
 }
@@ -57,9 +64,11 @@ fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     let mut playbook = AnsibleAggregatePlaybook::new();
 
     settings.log_info(format!("Deploying service '{}' to cluster", &dsc.service).as_str());
-    if dsc.service == "kubernetes" {
+    if dsc.service == SERVICE_NAME_KUBERNETES {
         playbook.add_playbook(AnsiblePlaybook::load(INSTALL_KUBERNETES_COMMAND_PLAYBOOK));
         playbook.add_playbook(AnsiblePlaybook::load(SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK));
+    } else if dsc.service == SERVICE_NAME_DOCKER {
+        playbook.add_playbook(AnsiblePlaybook::load(INSTALL_DOCKER_COMMAND_PLAYBOOK));
     } else {
         let msg = format!("Unknown service '{}', can't deploy", dsc.service);
         eprintln!("{}", msg);
@@ -74,8 +83,10 @@ fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     let mut playbook = AnsibleAggregatePlaybook::new();
 
     settings.log_info(format!("Deleting service '{}' from cluster", &dsc.service).as_str());
-    if dsc.service == "kubernetes" {
+    if dsc.service == SERVICE_NAME_KUBERNETES {
         playbook.add_playbook(AnsiblePlaybook::load(UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK));
+    } else if dsc.service == SERVICE_NAME_DOCKER {
+        playbook.add_playbook(AnsiblePlaybook::load(UNINSTALL_DOCKER_COMMAND_PLAYBOOK));
     } else {
         let msg = format!("Unknown service '{}', can't deploy", dsc.service);
         eprintln!("{}", msg);
