@@ -5,6 +5,8 @@
  */
 
 use std::include_str;
+use std::io::{Error, ErrorKind};
+use std::process::ExitStatus;
 
 mod ansible;
 pub use ansible::AnsiblePlaybook;
@@ -21,13 +23,13 @@ const INSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/
 const UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/uninstall-kubernetes.yaml");
 const SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/setup-kubernetes-cluster.yaml");
 
-pub fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> i32
+pub fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> Result<ExitStatus, Error>
 {
     AnsiblePlaybook::load(REBOOT_COMMAND_PLAYBOOK)
         .run(settings)
 }
 
-pub fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> i32
+pub fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> Result<ExitStatus, Error>
 {
     return match &sc.subcommand {
         ServiceSubCommand::Deploy(ref dsc) => run_deploy_service(settings, sc, dsc),
@@ -35,7 +37,7 @@ pub fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> i32
     };
 }
 
-fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> i32
+fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error>
 {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
@@ -44,14 +46,15 @@ fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
         playbook.add_playbook(AnsiblePlaybook::load(INSTALL_KUBERNETES_COMMAND_PLAYBOOK));
         playbook.add_playbook(AnsiblePlaybook::load(SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK));
     } else {
-        eprintln!("Unknown service '{}', can't deploy", dsc.service);
-        return -1;
+        let msg = format!("Unknown service '{}', can't deploy", dsc.service);
+        eprintln!("{}", msg);
+        return Err(Error::new(ErrorKind::Other, msg));
     }
 
-    return playbook.run(settings);
+    playbook.run(settings)
 }
 
-fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> i32
+fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error>
 {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
@@ -59,14 +62,15 @@ fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     if dsc.service == "kubernetes" {
         playbook.add_playbook(AnsiblePlaybook::load(UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK));
     } else {
-        eprintln!("Unknown service '{}', can't deploy", dsc.service);
-        return -1;
+        let msg = format!("Unknown service '{}', can't deploy", dsc.service);
+        eprintln!("{}", msg);
+        return Err(Error::new(ErrorKind::Other, msg));
     }
 
     return playbook.run(settings);
 }
 
-pub fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> i32
+pub fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> Result<ExitStatus, Error>
 {
     AnsiblePlaybook::load(UPDATE_COMMAND_PLAYBOOK)
         .run(settings)

@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
-use std::io::Write;
-use std::process::{Command, Stdio};
+use std::io::{Error, Write};
+use std::process::{Command, ExitStatus, Stdio};
 use tempfile::NamedTempFile;
 use crate::ClusterSettings;
 
@@ -40,9 +40,9 @@ impl AnsiblePlaybook
         return temp_file.path().to_string_lossy().to_string();
     }
 
-    pub fn run(&self, settings: &ClusterSettings) -> i32
+    pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error>
     {
-        return run_ansible_playbook(settings, vec![self]);
+        run_ansible_playbook(settings, vec![self])
     }
 }
 
@@ -60,17 +60,17 @@ impl AnsibleAggregatePlaybook
         self.playbooks.push(playbook);
     }
 
-    pub fn run(&self, settings: &ClusterSettings) -> i32
+    pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error>
     {
         let mut playbooks: Vec<&AnsiblePlaybook> = Vec::new();
         for playbook in &self.playbooks {
             playbooks.push(&playbook);
         }
-        return run_ansible_playbook(settings, playbooks);
+        run_ansible_playbook(settings, playbooks)
     }
 }
 
-fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlaybook>) -> i32
+fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlaybook>) -> Result<ExitStatus, Error>
 {
     let mut args: Vec<String> = vec![
         // Ask for password for sudo
@@ -87,15 +87,8 @@ fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlayb
 
     // Run playbook
     settings.log_info("Executing Ansible playbooks");
-    let output = Command::new("ansible-playbook")
+    Command::new("ansible-playbook")
         .stdin(Stdio::piped())
         .args(args)
         .status()
-        .expect("Failed to execute ansible-playbook");
-
-    if output.success() {
-        return 0;
-    }
-
-    return -1;
 }

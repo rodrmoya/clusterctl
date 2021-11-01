@@ -4,27 +4,28 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
+use std::io::Error;
+
 use clap::Clap;
 pub mod commands;
 pub mod utils;
 use utils::settings::{ClusterSettings, SubCommand};
 
-fn main()
+fn main() -> Result<(), Error>
 {
     let settings: ClusterSettings = ClusterSettings::parse();
 
-    let mut exit_code: i32 = -1;
     if !settings.inventory.is_empty() {
-        exit_code = match settings.subcommand {
-            SubCommand::Reboot(ref rc) => commands::run_reboot(&settings, rc),
-            SubCommand::Service(ref sc) => commands::run_service(&settings, sc),
-            SubCommand::Update(ref uc) => commands::run_update(&settings, uc)
-        }
+        match settings.subcommand {
+            SubCommand::Reboot(ref rc) => commands::run_reboot(&settings, rc)?,
+            SubCommand::Service(ref sc) => commands::run_service(&settings, sc)?,
+            SubCommand::Update(ref uc) => commands::run_update(&settings, uc)?
+        };
     } else {
         eprintln!("Inventory file not specified, please specify it via the --inventory option");
     }
 
-    std::process::exit(exit_code);
+    Ok(())
 }
 
 #[cfg(test)]
