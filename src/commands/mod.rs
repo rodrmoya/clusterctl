@@ -23,13 +23,32 @@ const INSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/
 const UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/uninstall-kubernetes.yaml");
 const SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/setup-kubernetes-cluster.yaml");
 
-pub fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> Result<ExitStatus, Error>
+pub trait CommandRunner {
+    fn run(&self) -> Result<ExitStatus, Error>;
+}
+
+impl CommandRunner for ClusterSettings {
+    fn run(&self) -> Result<ExitStatus, Error>
+    {
+        if !self.inventory.is_empty() {
+            match self.subcommand {
+                SubCommand::Reboot(ref rc) => return run_reboot(self, rc),
+                SubCommand::Service(ref sc) => return run_service(self, sc),
+                SubCommand::Update(ref uc) => return run_update(self, uc)
+            };
+        } else {
+            return Err(Error::new(ErrorKind::Other, "Inventory file not specified, please specify it via the --inventory option"));
+        }
+    }
+}
+
+fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> Result<ExitStatus, Error>
 {
     AnsiblePlaybook::load(REBOOT_COMMAND_PLAYBOOK)
         .run(settings)
 }
 
-pub fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> Result<ExitStatus, Error>
+fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> Result<ExitStatus, Error>
 {
     return match &sc.subcommand {
         ServiceSubCommand::Deploy(ref dsc) => run_deploy_service(settings, sc, dsc),
@@ -70,7 +89,7 @@ fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     return playbook.run(settings);
 }
 
-pub fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> Result<ExitStatus, Error>
+fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> Result<ExitStatus, Error>
 {
     AnsiblePlaybook::load(UPDATE_COMMAND_PLAYBOOK)
         .run(settings)

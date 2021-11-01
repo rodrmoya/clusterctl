@@ -9,23 +9,17 @@ use std::io::Error;
 use clap::Clap;
 pub mod commands;
 pub mod utils;
-use utils::settings::{ClusterSettings, SubCommand};
+use utils::settings::ClusterSettings;
+use commands::CommandRunner;
 
 fn main() -> Result<(), Error>
 {
     let settings: ClusterSettings = ClusterSettings::parse();
 
-    if !settings.inventory.is_empty() {
-        match settings.subcommand {
-            SubCommand::Reboot(ref rc) => commands::run_reboot(&settings, rc)?,
-            SubCommand::Service(ref sc) => commands::run_service(&settings, sc)?,
-            SubCommand::Update(ref uc) => commands::run_update(&settings, uc)?
-        };
-    } else {
-        eprintln!("Inventory file not specified, please specify it via the --inventory option");
+    match settings.run() {
+        Ok(_exit_code) => Ok(()),
+        Err(the_error) => Err(the_error),
     }
-
-    Ok(())
 }
 
 #[cfg(test)]
