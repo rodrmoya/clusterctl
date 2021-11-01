@@ -30,14 +30,10 @@ pub trait CommandRunner {
 impl CommandRunner for ClusterSettings {
     fn run(&self) -> Result<ExitStatus, Error>
     {
-        if !self.inventory.is_empty() {
-            match self.subcommand {
-                SubCommand::Reboot(ref rc) => run_reboot(self, rc),
-                SubCommand::Service(ref sc) => run_service(self, sc),
-                SubCommand::Update(ref uc) => run_update(self, uc)
-            }
-        } else {
-            return Err(Error::new(ErrorKind::Other, "Inventory file not specified, please specify it via the --inventory option"));
+        match self.subcommand {
+            SubCommand::Reboot(ref rc) => run_reboot(self, rc),
+            SubCommand::Service(ref sc) => run_service(self, sc),
+            SubCommand::Update(ref uc) => run_update(self, uc)
         }
     }
 }
