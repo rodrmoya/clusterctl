@@ -1,2 +1,2 @@
-# pi-cluster
-CLI to manage a Raspberry Pi's cluster
+# clusterctl
+CLI to manage a cluster of machines

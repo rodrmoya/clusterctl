@@ -1,5 +1,5 @@
 /*
- * Raspberry Pi cluster manager.
+ * CLI to manage a cluster of machines.
  *
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
@@ -38,7 +38,7 @@ mod tests {
         #[case] verbosity_arg: &str,
         #[case] expected_verbosity: LogLevel) {
         let settings: ClusterSettings = ClusterSettings::try_parse_from(
-            vec!["pi-cluster", verbosity_arg, "--inventory", INVENTORY_FILE, "update"]
+            vec!["clusterctl", verbosity_arg, "--inventory", INVENTORY_FILE, "update"]
         ).unwrap();
 
         assert_eq!(settings.inventory, INVENTORY_FILE);

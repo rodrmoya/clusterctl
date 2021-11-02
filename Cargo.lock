@@ -63,6 +63,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "clusterctl"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "rstest",
+ "strum",
+ "strum_macros",
+ "tempfile",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -124,17 +135,6 @@ name = "os_str_bytes"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6acbef58a60fe69ab50510a55bc8cdd4d6cf2283d27ad338f54cb52747a9cf2d"
-
-[[package]]
-name = "pi-cluster"
-version = "0.1.0"
-dependencies = [
- "clap",
- "rstest",
- "strum",
- "strum_macros",
- "tempfile",
-]
 
 [[package]]
 name = "ppv-lite86"
