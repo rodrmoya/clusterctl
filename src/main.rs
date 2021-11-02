@@ -15,10 +15,8 @@ use commands::CommandRunner;
 fn main() -> Result<(), Error> {
     let settings: ClusterSettings = ClusterSettings::parse();
 
-    match settings.run() {
-        Ok(_exit_code) => Ok(()),
-        Err(the_error) => Err(the_error),
-    }
+    settings.run()?;
+    Ok(())
 }
 
 #[cfg(test)]
