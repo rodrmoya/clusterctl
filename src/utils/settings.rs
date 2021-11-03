@@ -64,3 +64,121 @@ pub struct ServiceCommandOptions {
 
 #[derive(Clap)]
 pub struct UpdateCommand;
+
+#[cfg(test)]
+mod tests {
+    use clap::Clap;
+    use log::Level;
+    use rstest::rstest;
+    use crate::utils::settings::*;
+
+    const INVENTORY_FILE: &str = "/tmp/inventory.yaml";
+
+    #[rstest]
+    #[case("-v", Level::Info)]
+    #[case("-vv", Level::Trace)]
+    #[case("-vvv", Level::Trace)]
+    fn global_settings_are_correctly_parsed(
+        #[case] verbosity_arg: &str,
+        #[case] expected_verbosity: Level) {
+        let settings: ClusterSettings = ClusterSettings::try_parse_from(
+            vec!["clusterctl", verbosity_arg, "--inventory", INVENTORY_FILE, "update"]
+        ).unwrap();
+
+        assert_eq!(settings.inventory, INVENTORY_FILE);
+
+        let verbosity_level = log::max_level();
+        assert!(matches!(verbosity_level, expected_verbosity));
+    }
+
+    #[rstest]
+    #[case("clusterctl --inventory /tmp/inventory.yaml ping", SubCommand::Ping(PingCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml update", SubCommand::Update(UpdateCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml reboot", SubCommand::Reboot(RebootCommand))]
+    fn command_and_options_are_correctly_parsed(
+        #[case] command_line: String,
+        #[case] expected_subcommand: SubCommand) {
+            let args: Vec<&str> = command_line.split(' ').collect();
+            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+
+            assert_eq!(settings.inventory, INVENTORY_FILE);
+            assert!(matches!(settings.subcommand, expected_subcommand));
+    }
+
+    #[rstest]
+    #[case("clusterctl --inventory /tmp/inventory.yaml run ls --chdir /", "ls", Some("/".to_string()), false)]
+    #[case("clusterctl --inventory /tmp/inventory.yaml run ls --needs-become --chdir /", "ls", Some("/".to_string()), true)]
+    #[case("clusterctl --inventory /tmp/inventory.yaml run ls", "ls", None, false)]
+    #[case("clusterctl --inventory /tmp/inventory.yaml run ls --needs-become", "ls", None, true)]
+    fn run_command_and_options_are_correctly_parsed(
+        #[case] command_line: &str,
+        #[case] expected_command: &str,
+        #[case] expected_directory: Option<String>,
+        #[case] expected_needs_become: bool) {
+            let args: Vec<&str> = command_line.split(' ').collect();
+            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+
+            assert_eq!(settings.inventory, INVENTORY_FILE);
+
+            match settings.subcommand {
+                SubCommand::Run(ref rc) => {
+                    assert_eq!(rc.command, expected_command);
+                    assert_eq!(rc.chdir, expected_directory);
+                    assert_eq!(rc.needs_become, expected_needs_become);
+                },
+                _ => assert!(false),
+            };
+    }
+
+    #[rstest]
+    #[case("clusterctl --inventory /tmp/inventory.yaml service deploy kubernetes", "kubernetes")]
+    #[case("clusterctl --inventory /tmp/inventory.yaml service deploy docker", "docker")]
+    fn service_deploy_command_and_options_are_correctly_parsed(
+        #[case] command_line: &str,
+        #[case] expected_service_name: &str) {
+            let args: Vec<&str> = command_line.split(' ').collect();
+            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+
+            assert_eq!(settings.inventory, INVENTORY_FILE);
+
+            match settings.subcommand {
+                SubCommand::Service(ref sc) => {
+                    assert!(matches!(sc.subcommand, ServiceSubCommand::Deploy(_)));
+
+                    match sc.subcommand {
+                        ServiceSubCommand::Deploy(ref ssc) => {
+                            assert_eq!(ssc.service, expected_service_name);
+                        }
+                        _ => assert!(false),
+                    }
+                },
+                _ => assert!(false),
+            }
+    }
+
+    #[rstest]
+    #[case("clusterctl --inventory /tmp/inventory.yaml service delete kubernetes", "kubernetes")]
+    #[case("clusterctl --inventory /tmp/inventory.yaml service delete docker", "docker")]
+    fn service_delete_command_and_options_are_correctly_parsed(
+        #[case] command_line: &str,
+        #[case] expected_service_name: &str) {
+            let args: Vec<&str> = command_line.split(' ').collect();
+            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+
+            assert_eq!(settings.inventory, INVENTORY_FILE);
+
+            match settings.subcommand {
+                SubCommand::Service(ref sc) => {
+                    assert!(matches!(sc.subcommand, ServiceSubCommand::Delete(_)));
+
+                    match sc.subcommand {
+                        ServiceSubCommand::Delete(ref ssc) => {
+                            assert_eq!(ssc.service, expected_service_name);
+                        }
+                        _ => assert!(false),
+                    }
+                },
+                _ => assert!(false),
+            }
+    }
+}
