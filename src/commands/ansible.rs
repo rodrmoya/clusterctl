@@ -29,7 +29,7 @@ impl AnsiblePlaybook {
     pub fn save_to_file(&self, settings: &ClusterSettings) -> String {
         let mut temp_file = NamedTempFile::new()
             .expect("Could not create temp file");
-        trace!("Writing Ansible playbook to {}", temp_file.path().display());
+        info!("Writing Ansible playbook to {}", temp_file.path().display());
         temp_file.write_all(self.file_contents.as_bytes())
             .expect("Failed saving playbook to temporary file");
 
