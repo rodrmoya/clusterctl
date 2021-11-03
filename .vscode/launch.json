@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'pi-cluster'",
+            "name": "Debug executable 'clusterctl'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=pi-cluster",
-                    "--package=pi-cluster"
+                    "--bin=clusterctl",
+                    "--package=clusterctl"
                 ],
                 "filter": {
-                    "name": "pi-cluster",
+                    "name": "clusterctl",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'pi-cluster'",
+            "name": "Debug unit tests in executable 'clusterctl'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=pi-cluster",
-                    "--package=pi-cluster"
+                    "--bin=clusterctl",
+                    "--package=clusterctl"
                 ],
                 "filter": {
-                    "name": "pi-cluster",
+                    "name": "clusterctl",
                     "kind": "bin"
                 }
             },
