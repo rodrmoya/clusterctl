@@ -38,6 +38,7 @@ impl CommandRunner for ClusterSettings {
         match self.subcommand {
             SubCommand::Ping(ref pc) => run_simple_command(self, "ping", false),
             SubCommand::Reboot(ref rc) => run_simple_command(self, "reboot", true),
+            SubCommand::Run(ref rc) => run_command_in_cluster(self, rc),
             SubCommand::Service(ref sc) => run_service(self, sc),
             SubCommand::Update(ref uc) => run_update(self, uc)
         }
@@ -46,6 +47,12 @@ impl CommandRunner for ClusterSettings {
 
 fn run_simple_command(settings: &ClusterSettings, cmd: &str, needs_become: bool) -> Result<ExitStatus, Error> {
     AnsibleCommand::new(cmd, needs_become)
+        .run(settings)
+}
+
+fn run_command_in_cluster(settings: &ClusterSettings, rc: &RunCommand) -> Result<ExitStatus, Error> {
+    AnsibleCommand::new(format!("command {}", rc.command).as_str(), rc.needs_become)
+        .with_optional_parameter("chdir", &rc.chdir)
         .run(settings)
 }
 

@@ -23,6 +23,7 @@ pub struct ClusterSettings {
 pub enum SubCommand {
     Ping(PingCommand),
     Reboot(RebootCommand),
+    Run(RunCommand),
     Service(ServiceCommand),
     Update(UpdateCommand)
 }
@@ -32,6 +33,17 @@ pub struct PingCommand;
 
 #[derive(Clap)]
 pub struct RebootCommand;
+
+#[derive(Clap)]
+pub struct RunCommand {
+    pub command: String,
+
+    #[clap(short, long)]
+    pub needs_become: bool,
+
+    #[clap(short, long)]
+    pub chdir: Option<String>
+}
 
 #[derive(Clap)]
 pub struct ServiceCommand {
