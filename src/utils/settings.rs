@@ -143,8 +143,6 @@ mod tests {
 
             match settings.subcommand {
                 SubCommand::Service(ref sc) => {
-                    assert!(matches!(sc.subcommand, ServiceSubCommand::Deploy(_)));
-
                     match sc.subcommand {
                         ServiceSubCommand::Deploy(ref ssc) => {
                             assert_eq!(ssc.service, expected_service_name);
@@ -169,8 +167,6 @@ mod tests {
 
             match settings.subcommand {
                 SubCommand::Service(ref sc) => {
-                    assert!(matches!(sc.subcommand, ServiceSubCommand::Delete(_)));
-
                     match sc.subcommand {
                         ServiceSubCommand::Delete(ref ssc) => {
                             assert_eq!(ssc.service, expected_service_name);
