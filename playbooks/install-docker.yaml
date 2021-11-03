@@ -1,5 +1,6 @@
 - name: Install Docker
-  block:
+  hosts: cluster
+  tasks:
     - name: Ensure GPG is installed
       become: true
       apt:
@@ -35,7 +36,7 @@
     - name: Ensure user is in the Docker group
       become: true
       user:
-        name: {{ ansible_user_id }}
+        name: "{{ ansible_user_id }}"
         groups: docker
         append: yes
     

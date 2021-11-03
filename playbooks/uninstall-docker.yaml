@@ -1,5 +1,6 @@
 - name: Uninstall Docker
-  block:
+  hosts: cluster
+  tasks:
     - name: Ensure Docker CE is uninstalled
       become: true
       apt:
