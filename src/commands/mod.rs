@@ -53,10 +53,10 @@ fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> Result<ExitStat
 }
 
 fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> Result<ExitStatus, Error> {
-    return match &sc.subcommand {
+    match &sc.subcommand {
         ServiceSubCommand::Deploy(ref dsc) => run_deploy_service(settings, sc, dsc),
         ServiceSubCommand::Delete(ref dsc) => run_delete_service(settings, sc, dsc)
-    };
+    }
 }
 
 fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
