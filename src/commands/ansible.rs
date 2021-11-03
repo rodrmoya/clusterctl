@@ -45,17 +45,26 @@ impl AnsibleCommand {
         let mut args: Vec<String> = vec![
             // Inventory file to use
             "--inventory".to_string(),
-            settings.inventory.clone(),
-            "all".to_string()
+            settings.inventory.clone()
         ];
 
         if self.needs_become {
             args.push("-K".to_string());
+            args.push("-b".to_string());
         }
 
         // Command to run
         args.push("-m".to_string());
         args.push(self.command.clone());
+
+        // And now all extra parameters
+        if self.parameters.len() > 0 {
+            for param in &self.parameters {
+                args.push(format!("-a {}=\"{}\"", param.0, param.1));
+            }
+        }
+
+        args.push("all".to_string());
 
         info!("Executing Ansible command {}", self.command.clone());
         Command::new("ansible")
