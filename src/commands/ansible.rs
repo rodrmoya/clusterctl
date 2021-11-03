@@ -7,6 +7,7 @@
 use std::io::{Error, Write};
 use std::process::{Command, ExitStatus, Stdio};
 use tempfile::NamedTempFile;
+use log::{error, info, trace};
 use crate::ClusterSettings;
 
 // Represents a single Ansible playbook
@@ -28,7 +29,7 @@ impl AnsiblePlaybook {
     pub fn save_to_file(&self, settings: &ClusterSettings) -> String {
         let mut temp_file = NamedTempFile::new()
             .expect("Could not create temp file");
-        settings.log_trace(format!("Writing Ansible playbook to {}", temp_file.path().display()).as_str());
+        trace!("Writing Ansible playbook to {}", temp_file.path().display());
         temp_file.write_all(self.file_contents.as_bytes())
             .expect("Failed saving playbook to temporary file");
 
@@ -75,7 +76,7 @@ fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlayb
     }
 
     // Run playbook
-    settings.log_info("Executing Ansible playbooks");
+    info!("Executing Ansible playbooks");
     Command::new("ansible-playbook")
         .stdin(Stdio::piped())
         .args(args)

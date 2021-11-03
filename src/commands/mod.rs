@@ -8,6 +8,8 @@ use std::include_str;
 use std::io::{Error, ErrorKind};
 use std::process::ExitStatus;
 
+use log::{info, error};
+
 mod ansible;
 pub use ansible::AnsiblePlaybook;
 
@@ -60,7 +62,7 @@ fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> Result<ExitSt
 fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
-    settings.log_info(format!("Deploying service '{}' to cluster", &dsc.service).as_str());
+    info!("Deploying service '{}' to cluster", &dsc.service);
     if dsc.service == SERVICE_NAME_KUBERNETES {
         playbook.add_playbook(AnsiblePlaybook::load(INSTALL_KUBERNETES_COMMAND_PLAYBOOK));
         playbook.add_playbook(AnsiblePlaybook::load(SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK));
@@ -68,7 +70,7 @@ fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
         playbook.add_playbook(AnsiblePlaybook::load(INSTALL_DOCKER_COMMAND_PLAYBOOK));
     } else {
         let msg = format!("Unknown service '{}', can't deploy", dsc.service);
-        eprintln!("{}", msg);
+        error!("{}", msg);
         return Err(Error::new(ErrorKind::Other, msg));
     }
 
@@ -78,14 +80,14 @@ fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
 fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
-    settings.log_info(format!("Deleting service '{}' from cluster", &dsc.service).as_str());
+    info!("Deleting service '{}' from cluster", &dsc.service);
     if dsc.service == SERVICE_NAME_KUBERNETES {
         playbook.add_playbook(AnsiblePlaybook::load(UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK));
     } else if dsc.service == SERVICE_NAME_DOCKER {
         playbook.add_playbook(AnsiblePlaybook::load(UNINSTALL_DOCKER_COMMAND_PLAYBOOK));
     } else {
         let msg = format!("Unknown service '{}', can't deploy", dsc.service);
-        eprintln!("{}", msg);
+        error!("{}", msg);
         return Err(Error::new(ErrorKind::Other, msg));
     }
 

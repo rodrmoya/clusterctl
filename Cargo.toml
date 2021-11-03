@@ -10,6 +10,7 @@ clap = "3.0.0-beta.2"
 strum = "0.21.0"
 strum_macros = "0.21"
 tempfile = "3.2.0"
+log = "0.4.14"
 
 [dev-dependencies]
 rstest = "0.11.0"
