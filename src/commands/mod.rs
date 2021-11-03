@@ -88,7 +88,7 @@ fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
         return Err(Error::new(ErrorKind::Other, msg));
     }
 
-    return playbook.run(settings);
+    playbook.run(settings)
 }
 
 fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> Result<ExitStatus, Error> {
