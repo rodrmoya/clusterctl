@@ -41,6 +41,13 @@ impl AnsibleCommand {
         self
     }
 
+    pub fn with_optional_parameter(mut self, param_name: &str, param_value: &Option<String>) -> Self {
+        match param_value {
+            Some(v) => self.with_parameter(param_name, &v),
+            None => self
+        }
+    }
+
     pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error> {
         let mut args: Vec<String> = vec![
             // Inventory file to use
@@ -141,4 +148,38 @@ fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlayb
         .stdin(Stdio::piped())
         .args(args)
         .status()
+}
+
+#[cfg(test)]
+mod tests {
+    use rstest::rstest;
+
+    use super::AnsibleCommand;
+
+    #[rstest]
+    #[case(None, false)]
+    #[case(None, true)]
+    #[case(Some(String::new()), false)]
+    #[case(Some(String::new()), true)]
+    fn commands_with_parameters_are_correctly_built(
+        #[case] optional_parameter: Option<String>,
+        #[case] needs_become: bool) {
+        let command = AnsibleCommand::new("my_command", needs_become)
+            .with_parameter("param1", "param1_value")
+            .with_parameter("param2", "param2_value")
+            .with_optional_parameter("opt_param1", &optional_parameter);
+
+        assert_eq!(command.command, "my_command");
+        assert_eq!(command.needs_become, needs_become);
+        assert_eq!(command.parameters.get("param1").unwrap(), "param1_value");
+        assert_eq!(command.parameters.get("param2").unwrap(), "param2_value");
+
+        match optional_parameter {
+            Some(v) => {
+                assert!(command.parameters.contains_key("opt_param1"));
+                assert_eq!(command.parameters.get("opt_param1").unwrap(), &v);
+            },
+            None => assert!(!command.parameters.contains_key("opt_param1")),
+        };
+    }
 }
