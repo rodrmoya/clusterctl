@@ -32,8 +32,11 @@ impl AnsiblePlaybook {
         info!("Writing Ansible playbook to {}", temp_file.path().display());
         temp_file.write_all(self.file_contents.as_bytes())
             .expect("Failed saving playbook to temporary file");
+        let path = temp_file.path().to_string_lossy().to_string();
+        temp_file.keep()
+            .expect("Could not persist temporary file");
 
-        return temp_file.path().to_string_lossy().to_string();
+        path
     }
 
     pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error> {
