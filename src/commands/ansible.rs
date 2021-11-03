@@ -41,7 +41,7 @@ impl AnsibleCommand {
         self
     }
 
-    pub fn with_optional_parameter(mut self, param_name: &str, param_value: &Option<String>) -> Self {
+    pub fn with_optional_parameter(self, param_name: &str, param_value: &Option<String>) -> Self {
         match param_value {
             Some(v) => self.with_parameter(param_name, &v),
             None => self
@@ -90,7 +90,7 @@ impl AnsiblePlaybook {
         }
     }
 
-    pub fn save_to_file(&self, settings: &ClusterSettings) -> String {
+    pub fn save_to_file(&self) -> String {
         let mut temp_file = NamedTempFile::new()
             .expect("Could not create temp file");
         info!("Writing Ansible playbook to {}", temp_file.path().display());
@@ -138,7 +138,7 @@ fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlayb
         ];
 
     for playbook in &playbooks {
-        let file_name = playbook.save_to_file(settings);
+        let file_name = playbook.save_to_file();
         args.push(file_name);
     }
 
