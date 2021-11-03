@@ -21,10 +21,14 @@ pub struct ClusterSettings {
 
 #[derive(Clap)]
 pub enum SubCommand {
+    Ping(PingCommand),
     Reboot(RebootCommand),
     Service(ServiceCommand),
     Update(UpdateCommand)
 }
+
+#[derive(Clap)]
+pub struct PingCommand;
 
 #[derive(Clap)]
 pub struct RebootCommand;

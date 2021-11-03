@@ -1,7 +1,0 @@
----
-- name: Reboot cluster
-  hosts: cluster
-  tasks:
-    - name: Reboot machine
-      become: true
-      reboot:

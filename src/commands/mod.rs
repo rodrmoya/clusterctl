@@ -12,13 +12,11 @@ use log::{info, error};
 
 mod ansible;
 pub use ansible::AnsiblePlaybook;
-
-use crate::commands::ansible::AnsibleAggregatePlaybook;
+use crate::commands::ansible::{AnsibleAggregatePlaybook, AnsibleCommand};
 
 use crate::utils::settings::*;
 
 // Command names, which are also playbook file names
-const REBOOT_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/reboot.yaml");
 const UPDATE_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/update.yaml");
 
 const INSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/install-kubernetes.yaml");
@@ -40,15 +38,16 @@ impl CommandRunner for ClusterSettings {
     fn run(&self) -> Result<ExitStatus, Error>
     {
         match self.subcommand {
-            SubCommand::Reboot(ref rc) => run_reboot(self, rc),
+            SubCommand::Ping(ref pc) => run_simple_command(self, "ping", false),
+            SubCommand::Reboot(ref rc) => run_simple_command(self, "reboot", true),
             SubCommand::Service(ref sc) => run_service(self, sc),
             SubCommand::Update(ref uc) => run_update(self, uc)
         }
     }
 }
 
-fn run_reboot(settings: &ClusterSettings, rc: &RebootCommand) -> Result<ExitStatus, Error> {
-    AnsiblePlaybook::load(REBOOT_COMMAND_PLAYBOOK)
+fn run_simple_command(settings: &ClusterSettings, cmd: &str, needs_become: bool) -> Result<ExitStatus, Error> {
+    AnsibleCommand::new(cmd, needs_become)
         .run(settings)
 }
 

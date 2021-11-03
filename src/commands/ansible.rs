@@ -7,8 +7,14 @@
 use std::io::{Error, Write};
 use std::process::{Command, ExitStatus, Stdio};
 use tempfile::NamedTempFile;
-use log::{error, info, trace};
+use log::info;
 use crate::ClusterSettings;
+
+// Represents an Ansible command "session"
+pub struct AnsibleCommand {
+    command: String,
+    needs_become: bool
+}
 
 // Represents a single Ansible playbook
 pub struct AnsiblePlaybook {
@@ -17,6 +23,38 @@ pub struct AnsiblePlaybook {
 
 pub struct AnsibleAggregatePlaybook {
     playbooks: Vec<AnsiblePlaybook>
+}
+
+impl AnsibleCommand {
+    pub fn new(command: &str, needs_become: bool) -> AnsibleCommand {
+        AnsibleCommand {
+            command: command.to_string(),
+            needs_become
+        }
+    }
+
+    pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error> {
+        let mut args: Vec<String> = vec![
+            // Inventory file to use
+            "--inventory".to_string(),
+            settings.inventory.clone(),
+            "all".to_string()
+        ];
+
+        if self.needs_become {
+            args.push("-K".to_string());
+        }
+        
+        // Command to run
+        args.push("-m".to_string());
+        args.push(self.command.clone());
+
+        info!("Executing Ansible command {}", self.command.clone());
+        Command::new("ansible")
+            .stdin(Stdio::piped())
+            .args(args)
+            .status()
+    }
 }
 
 impl AnsiblePlaybook {
