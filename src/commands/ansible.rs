@@ -60,7 +60,9 @@ impl AnsibleCommand {
         // And now all extra parameters
         if self.parameters.len() > 0 {
             for param in &self.parameters {
-                args.push(format!("-a {}=\"{}\"", param.0, param.1));
+                if !param.0.is_empty() && !param.1.is_empty() {
+                    args.push(format!("-a {}=\"{}\"", param.0, param.1));
+                }
             }
         }
 
