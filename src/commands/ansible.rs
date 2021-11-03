@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2021 Rodrigo Moya <rodrigo@gnome.org>
  */
 
+use std::collections::HashMap;
 use std::io::{Error, Write};
 use std::process::{Command, ExitStatus, Stdio};
 use tempfile::NamedTempFile;
@@ -13,7 +14,8 @@ use crate::ClusterSettings;
 // Represents an Ansible command "session"
 pub struct AnsibleCommand {
     command: String,
-    needs_become: bool
+    needs_become: bool,
+    parameters: HashMap<String, String>
 }
 
 // Represents a single Ansible playbook
@@ -26,11 +28,17 @@ pub struct AnsibleAggregatePlaybook {
 }
 
 impl AnsibleCommand {
-    pub fn new(command: &str, needs_become: bool) -> AnsibleCommand {
+    pub fn new(command: &str, needs_become: bool) -> Self {
         AnsibleCommand {
             command: command.to_string(),
-            needs_become
+            needs_become,
+            parameters: HashMap::new()
         }
+    }
+
+    pub fn with_parameter(mut self, param_name: &str, param_value: &str) -> Self {
+        self.parameters.insert(param_name.to_string(), param_value.to_string());
+        self
     }
 
     pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error> {
@@ -44,7 +52,7 @@ impl AnsibleCommand {
         if self.needs_become {
             args.push("-K".to_string());
         }
-        
+
         // Command to run
         args.push("-m".to_string());
         args.push(self.command.clone());

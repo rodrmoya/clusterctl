@@ -17,8 +17,6 @@ use crate::commands::ansible::{AnsibleAggregatePlaybook, AnsibleCommand};
 use crate::utils::settings::*;
 
 // Command names, which are also playbook file names
-const UPDATE_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/update.yaml");
-
 const INSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/install-kubernetes.yaml");
 const UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/uninstall-kubernetes.yaml");
 const SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/setup-kubernetes-cluster.yaml");
@@ -94,6 +92,10 @@ fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
 }
 
 fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> Result<ExitStatus, Error> {
-    AnsiblePlaybook::load(UPDATE_COMMAND_PLAYBOOK)
+    AnsibleCommand::new("apt", true)
+        .with_parameter("update_cache", "yes")
+        .with_parameter("autoremove", "yes")
+        .with_parameter("force_apt_get", "yes")
+        .with_parameter("upgrade", "yes")
         .run(settings)
 }
