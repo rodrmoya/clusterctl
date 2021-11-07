@@ -21,10 +21,15 @@ pub struct ClusterSettings {
 
 #[derive(Clap, Debug)]
 pub enum SubCommand {
+    #[clap(about = "Ping all machines in the cluster to check they're alive and reachable")]
     Ping(PingCommand),
+    #[clap(about = "Reboot all machines in the cluster")]
     Reboot(RebootCommand),
+    #[clap(about = "Run a command on all machines in the cluster")]
     Run(RunCommand),
+    #[clap(about = "Commands to operate services on the cluster")]
     Service(ServiceCommand),
+    #[clap(about = "Perform OS and apps updates on all the machines in the cluster")]
     Update(UpdateCommand)
 }
 
