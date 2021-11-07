@@ -152,9 +152,26 @@ fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlayb
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
     use rstest::rstest;
+    use crate::commands::{INSTALL_DOCKER_COMMAND_PLAYBOOK, INSTALL_KUBERNETES_COMMAND_PLAYBOOK, SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK, UNINSTALL_DOCKER_COMMAND_PLAYBOOK, UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK};
+    use super::{AnsibleCommand, AnsiblePlaybook};
 
-    use super::AnsibleCommand;
+    #[rstest]
+    #[case(INSTALL_DOCKER_COMMAND_PLAYBOOK)]
+    #[case(INSTALL_KUBERNETES_COMMAND_PLAYBOOK)]
+    #[case(SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK)]
+    #[case(UNINSTALL_DOCKER_COMMAND_PLAYBOOK)]
+    #[case(UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK)]
+    fn playbook_is_correctly_saved(
+        #[case] playbook_contents: &str) {
+            let playbook = AnsiblePlaybook::load(playbook_contents);
+            assert_eq!(playbook.file_contents, playbook_contents);
+
+            let playbook_file = playbook.save_to_file();
+            let saved_playbook_contents = fs::read_to_string(playbook_file).unwrap();
+            assert_eq!(saved_playbook_contents, playbook.file_contents);
+    }
 
     #[rstest]
     #[case(None, false)]
