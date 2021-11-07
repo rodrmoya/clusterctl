@@ -19,7 +19,7 @@ pub struct ClusterSettings {
     pub subcommand: SubCommand
 }
 
-#[derive(Clap)]
+#[derive(Clap, Debug)]
 pub enum SubCommand {
     Ping(PingCommand),
     Reboot(RebootCommand),
@@ -28,13 +28,13 @@ pub enum SubCommand {
     Update(UpdateCommand)
 }
 
-#[derive(Clap)]
+#[derive(Clap, Debug)]
 pub struct PingCommand;
 
-#[derive(Clap)]
+#[derive(Clap, Debug)]
 pub struct RebootCommand;
 
-#[derive(Clap)]
+#[derive(Clap, Debug)]
 pub struct RunCommand {
     pub command: String,
 
@@ -45,24 +45,24 @@ pub struct RunCommand {
     pub chdir: Option<String>
 }
 
-#[derive(Clap)]
+#[derive(Clap, Debug)]
 pub struct ServiceCommand {
     #[clap(subcommand)]
     pub subcommand: ServiceSubCommand
 }
 
-#[derive(Clap)]
+#[derive(Clap, Debug)]
 pub enum ServiceSubCommand {
     Deploy(ServiceCommandOptions),
     Delete(ServiceCommandOptions)
 }
 
-#[derive(Clap)]
+#[derive(Clap, Debug)]
 pub struct ServiceCommandOptions {
     pub service: String
 }
 
-#[derive(Clap)]
+#[derive(Clap, Debug)]
 pub struct UpdateCommand;
 
 #[cfg(test)]
@@ -120,14 +120,13 @@ mod tests {
 
             assert_eq!(settings.inventory, INVENTORY_FILE);
 
-            match settings.subcommand {
-                SubCommand::Run(ref rc) => {
-                    assert_eq!(rc.command, expected_command);
-                    assert_eq!(rc.chdir, expected_directory);
-                    assert_eq!(rc.needs_become, expected_needs_become);
-                },
-                _ => assert!(false),
-            };
+            if let SubCommand::Run(ref rc) = settings.subcommand {
+                assert_eq!(rc.command, expected_command);
+                assert_eq!(rc.chdir, expected_directory);
+                assert_eq!(rc.needs_become, expected_needs_become);
+            } else {
+                assert!(false);
+            }
     }
 
     #[rstest]
@@ -141,16 +140,14 @@ mod tests {
 
             assert_eq!(settings.inventory, INVENTORY_FILE);
 
-            match settings.subcommand {
-                SubCommand::Service(ref sc) => {
-                    match sc.subcommand {
-                        ServiceSubCommand::Deploy(ref ssc) => {
-                            assert_eq!(ssc.service, expected_service_name);
-                        }
-                        _ => assert!(false),
-                    }
-                },
-                _ => assert!(false),
+            if let SubCommand::Service(ref sc) = settings.subcommand {
+                if let ServiceSubCommand::Deploy(ref ssc) = sc.subcommand {
+                    assert_eq!(ssc.service, expected_service_name);
+                } else {
+                    panic!("Subcommand {:?} is wrong", sc.subcommand);
+                }
+            } else {
+                panic!("Command {:?} is wrong", settings.subcommand);
             }
     }
 
@@ -165,16 +162,14 @@ mod tests {
 
             assert_eq!(settings.inventory, INVENTORY_FILE);
 
-            match settings.subcommand {
-                SubCommand::Service(ref sc) => {
-                    match sc.subcommand {
-                        ServiceSubCommand::Delete(ref ssc) => {
-                            assert_eq!(ssc.service, expected_service_name);
-                        }
-                        _ => assert!(false),
-                    }
-                },
-                _ => assert!(false),
+            if let SubCommand::Service(ref sc) = settings.subcommand {
+                if let ServiceSubCommand::Delete(ref ssc) = sc.subcommand {
+                    assert_eq!(ssc.service, expected_service_name);
+                } else {
+                    panic!("Subcommand {:?} is wrong", sc.subcommand);
+                }
+            } else {
+                panic!("Command {:?} is wrong", settings.subcommand);
             }
     }
 }

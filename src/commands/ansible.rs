@@ -174,12 +174,11 @@ mod tests {
         assert_eq!(command.parameters.get("param1").unwrap(), "param1_value");
         assert_eq!(command.parameters.get("param2").unwrap(), "param2_value");
 
-        match optional_parameter {
-            Some(v) => {
-                assert!(command.parameters.contains_key("opt_param1"));
-                assert_eq!(command.parameters.get("opt_param1").unwrap(), &v);
-            },
-            None => assert!(!command.parameters.contains_key("opt_param1")),
-        };
+        if let Some(v) = optional_parameter {
+            assert!(command.parameters.contains_key("opt_param1"));
+            assert_eq!(command.parameters.get("opt_param1").unwrap(), &v);
+        } else {
+            assert!(!command.parameters.contains_key("opt_param1"));
+        }
     }
 }
