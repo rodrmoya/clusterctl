@@ -15,6 +15,7 @@ use crate::ClusterSettings;
 pub struct AnsibleCommand {
     command: String,
     needs_become: bool,
+    host_pattern: Option<String>,
     parameters: HashMap<String, String>
 }
 
@@ -28,10 +29,11 @@ pub struct AnsibleAggregatePlaybook {
 }
 
 impl AnsibleCommand {
-    pub fn new(command: &str, needs_become: bool) -> Self {
+    pub fn new(command: &str, needs_become: bool, host_pattern: Option<String>) -> Self {
         AnsibleCommand {
             command: command.to_string(),
             needs_become,
+            host_pattern,
             parameters: HashMap::new()
         }
     }
@@ -49,36 +51,44 @@ impl AnsibleCommand {
     }
 
     pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error> {
-        let mut args: Vec<String> = vec![
-            // Inventory file to use
-            "--inventory".to_string(),
-            settings.inventory.clone()
-        ];
+        let command_arguments = {
+            let mut args: Vec<String> = vec![
+                // Inventory file to use
+                "--inventory".to_string(),
+                settings.inventory.clone()
+            ];
 
-        if self.needs_become {
-            args.push("-K".to_string());
-            args.push("-b".to_string());
-        }
+            if self.needs_become {
+                args.push("-K".to_string());
+                args.push("-b".to_string());
+            }
 
-        // Command to run
-        args.push("-m".to_string());
-        args.push(self.command.clone());
+            // Command to run
+            args.push("-m".to_string());
+            args.push(self.command.clone());
 
-        // And now all extra parameters
-        if self.parameters.len() > 0 {
-            for param in &self.parameters {
-                if !param.0.is_empty() && !param.1.is_empty() {
-                    args.push(format!("-a {}=\"{}\"", param.0, param.1));
+            // And now all extra parameters
+            if self.parameters.len() > 0 {
+                for param in &self.parameters {
+                    if !param.0.is_empty() && !param.1.is_empty() {
+                        args.push(format!("-a {}=\"{}\"", param.0, param.1));
+                    }
                 }
             }
-        }
 
-        args.push("all".to_string());
+            if let Some(pattern) = &self.host_pattern {
+                args.push(pattern.clone());
+            } else {
+                args.push("all".to_string());
+            }
+
+            args
+        };
 
         info!("Executing Ansible command {}", self.command.clone());
         Command::new("ansible")
             .stdin(Stdio::piped())
-            .args(args)
+            .args(command_arguments)
             .status()
     }
 }
@@ -181,7 +191,7 @@ mod tests {
     fn commands_with_parameters_are_correctly_built(
         #[case] optional_parameter: Option<String>,
         #[case] needs_become: bool) {
-        let command = AnsibleCommand::new("my_command", needs_become)
+        let command = AnsibleCommand::new("my_command", needs_become, None)
             .with_parameter("param1", "param1_value")
             .with_parameter("param2", "param2_value")
             .with_optional_parameter("opt_param1", &optional_parameter);

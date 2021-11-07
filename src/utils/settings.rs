@@ -15,6 +15,9 @@ pub struct ClusterSettings {
     #[clap(short, long, parse(from_occurrences), about = "Level of verbosity")]
     pub verbose: u64,
 
+    #[clap(short = 'p', long, about = "Host pattern. If not specified, all machines in the cluster is assumed")]
+    pub host_pattern: Option<String>,
+
     #[clap(subcommand)]
     pub subcommand: SubCommand
 }
@@ -29,6 +32,8 @@ pub enum SubCommand {
     Run(RunCommand),
     #[clap(about = "Commands to operate services on the cluster")]
     Service(ServiceCommand),
+    #[clap(about = "Open a secure shell connection to a machine on the cluster")]
+    Ssh(SshCommand),
     #[clap(about = "Perform OS and apps updates on all the machines in the cluster")]
     Update(UpdateCommand)
 }
@@ -71,6 +76,9 @@ pub struct ServiceCommandOptions {
 }
 
 #[derive(Clap, Debug)]
+pub struct SshCommand;
+
+#[derive(Clap, Debug)]
 pub struct UpdateCommand;
 
 #[cfg(test)]
@@ -103,6 +111,7 @@ mod tests {
     #[case("clusterctl --inventory /tmp/inventory.yaml ping", SubCommand::Ping(PingCommand))]
     #[case("clusterctl --inventory /tmp/inventory.yaml update", SubCommand::Update(UpdateCommand))]
     #[case("clusterctl --inventory /tmp/inventory.yaml reboot", SubCommand::Reboot(RebootCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml ssh", SubCommand::Ssh(SshCommand))]
     fn command_and_options_are_correctly_parsed(
         #[case] command_line: String,
         #[case] expected_subcommand: SubCommand) {

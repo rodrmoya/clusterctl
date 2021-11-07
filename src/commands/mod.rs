@@ -40,18 +40,19 @@ impl CommandRunner for ClusterSettings {
             SubCommand::Reboot(ref rc) => run_simple_command(self, "reboot", true),
             SubCommand::Run(ref rc) => run_command_in_cluster(self, rc),
             SubCommand::Service(ref sc) => run_service(self, sc),
+            SubCommand::Ssh(ref sc) => run_ssh(self, sc),
             SubCommand::Update(ref uc) => run_update(self, uc)
         }
     }
 }
 
 fn run_simple_command(settings: &ClusterSettings, cmd: &str, needs_become: bool) -> Result<ExitStatus, Error> {
-    AnsibleCommand::new(cmd, needs_become)
+    AnsibleCommand::new(cmd, needs_become, settings.host_pattern.clone())
         .run(settings)
 }
 
 fn run_command_in_cluster(settings: &ClusterSettings, rc: &RunCommand) -> Result<ExitStatus, Error> {
-    AnsibleCommand::new(format!("command {}", rc.command).as_str(), rc.needs_become)
+    AnsibleCommand::new(format!("command {}", rc.command).as_str(), rc.needs_become, settings.host_pattern.clone())
         .with_optional_parameter("chdir", &rc.chdir)
         .run(settings)
 }
@@ -98,8 +99,13 @@ fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     playbook.run(settings)
 }
 
+fn run_ssh(settings: &ClusterSettings, sc: &SshCommand) -> Result<ExitStatus, Error> {
+    AnsibleCommand::new("ssh", false, settings.host_pattern.clone())
+        .run(settings)
+}
+
 fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> Result<ExitStatus, Error> {
-    AnsibleCommand::new("apt", true)
+    AnsibleCommand::new("apt", true, settings.host_pattern.clone())
         .with_parameter("update_cache", "yes")
         .with_parameter("autoremove", "yes")
         .with_parameter("force_apt_get", "yes")
