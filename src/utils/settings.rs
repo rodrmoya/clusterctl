@@ -9,10 +9,10 @@ use clap::{Clap, crate_version, crate_authors, crate_description};
 #[derive(Clap)]
 #[clap(version = crate_version!(), author = crate_authors!(), about = crate_description!())]
 pub struct ClusterSettings {
-    #[clap(short, long)]
+    #[clap(short, long, about = "Host inventory file (in Ansible supported format)")]
     pub inventory: String,
 
-    #[clap(short, long, parse(from_occurrences))]
+    #[clap(short, long, parse(from_occurrences), about = "Level of verbosity")]
     pub verbose: u64,
 
     #[clap(subcommand)]
@@ -43,10 +43,10 @@ pub struct RebootCommand;
 pub struct RunCommand {
     pub command: String,
 
-    #[clap(short, long)]
+    #[clap(short, long, about = "Specifies the command needs to be run with elevated privileges")]
     pub needs_become: bool,
 
-    #[clap(short, long)]
+    #[clap(short, long, about = "Directory on the cluster machines to chdir to before running the command")]
     pub chdir: Option<String>
 }
 
@@ -58,12 +58,15 @@ pub struct ServiceCommand {
 
 #[derive(Clap, Debug)]
 pub enum ServiceSubCommand {
+    #[clap(about = "Deploy a service on the cluster")]
     Deploy(ServiceCommandOptions),
+    #[clap(about = "Delete a service from the cluster")]
     Delete(ServiceCommandOptions)
 }
 
 #[derive(Clap, Debug)]
 pub struct ServiceCommandOptions {
+    #[clap(about = "Service name ('kubernetes', 'docker', ...)")]
     pub service: String
 }
 

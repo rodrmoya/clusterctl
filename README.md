@@ -17,8 +17,8 @@ So, to be able to run it, you'll need the following:
    1. Right now, only Ubuntu OS is supported, so install that on all the cluster machines. (Support for other OS [is planned](https://github.com/rodrmoya/clusterctl/issues/3)).
    2. Enable SSH on all of the cluster machines.
    3. Create a user on all of the cluster machines with the same name everywhere.
-   4. Copy your ~/.ssh/id_rsa.* files to the ~/.ssh/ directory on the cluster machines. This is so that you can auth through SSH from your desktop machines.
-3. Make sure you can SSH from your "control" (the machine where you will be running commands against the cluster, i.e. your desktop machine) to all the cluster machines.
+   4. Copy your ~/.ssh/id_rsa* files to the ~/.ssh/ directory on the cluster machines. This is so that you can connect via SSH from your desktop machines.
+3. Make sure you can SSH from your "control" machine (the machine where you will be running commands against the cluster, i.e. your desktop machine) to all of the cluster machines.
 4. Setup the inventory file on your "control" machine. Follow [this guide](https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html) for that. You can name your machines as you wish, but at least the inventory should have these:
    1. A `master1` host. This will be the main master host, used for things like setting up the control plane in Kubernetes cluster, for instance.
    2. A `cluster` group, containing all the hosts in your cluster.
@@ -49,11 +49,11 @@ USAGE:
 
 FLAGS:
     -h, --help       Print help information
-    -v, --verbose    
+    -v, --verbose    Level of verbosity
     -V, --version    Print version information
 
 OPTIONS:
-    -i, --inventory <INVENTORY>    
+    -i, --inventory <INVENTORY>    Host inventory file (in Ansible supported format)
 
 SUBCOMMANDS:
     help       Print this message or the help of the given subcommand(s)
