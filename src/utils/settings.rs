@@ -125,7 +125,7 @@ mod tests {
                 assert_eq!(rc.chdir, expected_directory);
                 assert_eq!(rc.needs_become, expected_needs_become);
             } else {
-                assert!(false);
+                panic!("Command {:?} is wrong", settings.subcommand);
             }
     }
 
