@@ -45,7 +45,7 @@ So, to be able to run it, you'll need the following:
 # Running
 ```
 USAGE:
-    clusterctl [FLAGS] [OPTIONS] --inventory <INVENTORY> <SUBCOMMAND>
+    clusterctl [FLAGS] [OPTIONS] <SUBCOMMAND>
 
 FLAGS:
     -h, --help       Print help information
@@ -69,4 +69,4 @@ SUBCOMMANDS:
     update     Perform OS and apps updates on all the machines in the cluster
     uptime     Show how long machines in the cluster have been running
 ```
-The `--inventory` argument is required, and should be pointing to the Ansible inventory setup in the previous step.
+The `--inventory` argument is required if your local Ansible installation is not [configured](https://docs.ansible.com/ansible/latest/reference_appendices/config.html).
