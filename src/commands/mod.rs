@@ -36,8 +36,8 @@ impl CommandRunner for ClusterSettings {
     fn run(&self) -> Result<ExitStatus, Error>
     {
         match self.subcommand {
-            SubCommand::Ping(ref pc) => run_simple_command(self, "ping", false),
-            SubCommand::Reboot(ref rc) => run_simple_command(self, "reboot", true),
+            SubCommand::Ping(ref _pc) => run_simple_command(self, "ping", false),
+            SubCommand::Reboot(ref _rc) => run_simple_command(self, "reboot", true),
             SubCommand::Run(ref rc) => run_command_in_cluster(self, rc),
             SubCommand::Service(ref sc) => run_service(self, sc),
             SubCommand::Ssh(ref sc) => run_ssh(self, sc),
@@ -64,7 +64,7 @@ fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> Result<ExitSt
     }
 }
 
-fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
+fn run_deploy_service(settings: &ClusterSettings, _sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
     info!("Deploying service '{}' to cluster", &dsc.service);
@@ -82,7 +82,7 @@ fn run_deploy_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     playbook.run(settings)
 }
 
-fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
+fn run_delete_service(settings: &ClusterSettings, _sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
     info!("Deleting service '{}' from cluster", &dsc.service);
@@ -99,12 +99,12 @@ fn run_delete_service(settings: &ClusterSettings, sc: &ServiceCommand, dsc: &Ser
     playbook.run(settings)
 }
 
-fn run_ssh(settings: &ClusterSettings, sc: &SshCommand) -> Result<ExitStatus, Error> {
+fn run_ssh(settings: &ClusterSettings, _sc: &SshCommand) -> Result<ExitStatus, Error> {
     AnsibleCommand::new("ssh", false, settings.host_pattern.clone())
         .run(settings)
 }
 
-fn run_update(settings: &ClusterSettings, uc: &UpdateCommand) -> Result<ExitStatus, Error> {
+fn run_update(settings: &ClusterSettings, _uc: &UpdateCommand) -> Result<ExitStatus, Error> {
     AnsibleCommand::new("apt", true, settings.host_pattern.clone())
         .with_parameter("update_cache", "yes")
         .with_parameter("autoremove", "yes")
