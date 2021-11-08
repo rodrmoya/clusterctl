@@ -52,11 +52,11 @@ impl AnsibleCommand {
 
     pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error> {
         let command_arguments = {
-            let mut args: Vec<String> = vec![
-                // Inventory file to use
-                "--inventory".to_string(),
-                settings.inventory.clone()
-            ];
+            let mut args: Vec<String> = Vec::new();
+            if let Some(v) = &settings.inventory {
+                args.push("--inventory".to_string());
+                args.push(v.clone());
+            }
 
             if self.needs_become {
                 args.push("-K".to_string());
@@ -143,24 +143,29 @@ impl AnsibleAggregatePlaybook {
 }
 
 fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlaybook>) -> Result<ExitStatus, Error> {
-    let mut args: Vec<String> = vec![
-        // Ask for password for sudo
-        "-K".to_string(),
-        // Inventory file to use
-        "--inventory".to_string(),
-        settings.inventory.clone()
-        ];
+    let command_arguments = {
+        let mut args: Vec<String> = Vec::new();
 
-    for playbook in &playbooks {
-        let file_name = playbook.save_to_file();
-        args.push(file_name);
-    }
+        args.push("-K".to_string());
+
+        if let Some(v) = &settings.inventory {
+            args.push("--inventory".to_string());
+            args.push(v.clone());
+        }
+
+        for playbook in &playbooks {
+            let file_name = playbook.save_to_file();
+            args.push(file_name);
+        }
+
+        args
+    };
 
     // Run playbook
     info!("Executing Ansible playbooks");
     Command::new("ansible-playbook")
         .stdin(Stdio::piped())
-        .args(args)
+        .args(command_arguments)
         .status()
 }
 

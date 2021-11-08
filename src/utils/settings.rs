@@ -10,7 +10,7 @@ use clap::{Clap, crate_version, crate_authors, crate_description};
 #[clap(version = crate_version!(), author = crate_authors!(), about = crate_description!())]
 pub struct ClusterSettings {
     #[clap(short, long, about = "Host inventory file (in Ansible supported format)")]
-    pub inventory: String,
+    pub inventory: Option<String>,
 
     #[clap(short, long, parse(from_occurrences), about = "Level of verbosity")]
     pub verbose: u64,
