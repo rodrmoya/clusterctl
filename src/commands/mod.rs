@@ -38,10 +38,11 @@ impl CommandRunner for ClusterSettings {
         match self.subcommand {
             SubCommand::Ping(ref _pc) => run_simple_command(self, "ping", false),
             SubCommand::Reboot(ref _rc) => run_simple_command(self, "reboot", true),
-            SubCommand::Run(ref rc) => run_command_in_cluster(self, rc),
+            SubCommand::Run(ref rc) => run_command_in_cluster(self, &rc.command, rc.needs_become, &rc.chdir),
             SubCommand::Service(ref sc) => run_service(self, sc),
             SubCommand::Ssh(ref sc) => run_ssh(self, sc),
-            SubCommand::Update(ref uc) => run_update(self, uc)
+            SubCommand::Update(ref uc) => run_update(self, uc),
+            SubCommand::Uptime(ref _uc) => run_command_in_cluster(self, "uptime", false, &Option::<String>::None)
         }
     }
 }
@@ -51,9 +52,10 @@ fn run_simple_command(settings: &ClusterSettings, cmd: &str, needs_become: bool)
         .run(settings)
 }
 
-fn run_command_in_cluster(settings: &ClusterSettings, rc: &RunCommand) -> Result<ExitStatus, Error> {
-    AnsibleCommand::new(format!("command {}", rc.command).as_str(), rc.needs_become, settings.host_pattern.clone())
-        .with_optional_parameter("chdir", &rc.chdir)
+fn run_command_in_cluster(settings: &ClusterSettings, command: &str, needs_become: bool, chdir: &Option<String>) -> Result<ExitStatus, Error> {
+    AnsibleCommand::new(&String::new(), needs_become, settings.host_pattern.clone())
+        .with_parameter(command, &String::new())
+        .with_optional_parameter("chdir", chdir)
         .run(settings)
 }
 

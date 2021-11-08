@@ -45,7 +45,7 @@ So, to be able to run it, you'll need the following:
 # Running
 ```
 USAGE:
-    clusterctl [FLAGS] --inventory <INVENTORY> <SUBCOMMAND>
+    clusterctl [FLAGS] [OPTIONS] --inventory <INVENTORY> <SUBCOMMAND>
 
 FLAGS:
     -h, --help       Print help information
@@ -53,7 +53,11 @@ FLAGS:
     -V, --version    Print version information
 
 OPTIONS:
-    -i, --inventory <INVENTORY>    Host inventory file (in Ansible supported format)
+    -i, --inventory <INVENTORY>
+            Host inventory file (in Ansible supported format)
+
+    -p, --host-pattern <HOST_PATTERN>
+            Host pattern. If not specified, all machines in the cluster is assumed
 
 SUBCOMMANDS:
     help       Print this message or the help of the given subcommand(s)
@@ -61,6 +65,8 @@ SUBCOMMANDS:
     reboot     Reboot all machines in the cluster
     run        Run a command on all machines in the cluster
     service    Commands to operate services on the cluster
+    ssh        Open a secure shell connection to a machine on the cluster
     update     Perform OS and apps updates on all the machines in the cluster
+    uptime     Show how long machines in the cluster have been running
 ```
 The `--inventory` argument is required, and should be pointing to the Ansible inventory setup in the previous step.

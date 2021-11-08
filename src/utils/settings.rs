@@ -35,7 +35,9 @@ pub enum SubCommand {
     #[clap(about = "Open a secure shell connection to a machine on the cluster")]
     Ssh(SshCommand),
     #[clap(about = "Perform OS and apps updates on all the machines in the cluster")]
-    Update(UpdateCommand)
+    Update(UpdateCommand),
+    #[clap(about = "Show how long machines in the cluster have been running")]
+    Uptime(UptimeCommand)
 }
 
 #[derive(Clap, Debug)]
@@ -81,6 +83,9 @@ pub struct SshCommand;
 #[derive(Clap, Debug)]
 pub struct UpdateCommand;
 
+#[derive(Clap, Debug)]
+pub struct UptimeCommand;
+
 #[cfg(test)]
 mod tests {
     use clap::Clap;
@@ -112,6 +117,7 @@ mod tests {
     #[case("clusterctl --inventory /tmp/inventory.yaml update", SubCommand::Update(UpdateCommand))]
     #[case("clusterctl --inventory /tmp/inventory.yaml reboot", SubCommand::Reboot(RebootCommand))]
     #[case("clusterctl --inventory /tmp/inventory.yaml ssh", SubCommand::Ssh(SshCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml uptime", SubCommand::Uptime(UptimeCommand))]
     fn command_and_options_are_correctly_parsed(
         #[case] command_line: String,
         #[case] expected_subcommand: SubCommand) {
