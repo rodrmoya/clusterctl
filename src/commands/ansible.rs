@@ -5,6 +5,7 @@
  */
 
 use std::collections::HashMap;
+use std::convert::TryInto;
 use std::io::{Error, Write};
 use std::process::{Command, ExitStatus, Stdio};
 use tempfile::NamedTempFile;
@@ -53,6 +54,11 @@ impl AnsibleCommand {
     pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error> {
         let command_arguments = {
             let mut args: Vec<String> = Vec::new();
+
+            if let Some(v) = get_verbose_arguments_from_settings(settings) {
+                args.push(v);
+            }
+
             if let Some(v) = &settings.inventory {
                 args.push("--inventory".to_string());
                 args.push(v.clone());
@@ -89,7 +95,7 @@ impl AnsibleCommand {
             args
         };
 
-        info!("Executing Ansible command {}", self.command.clone());
+        info!("Executing Ansible command {} {:?}", self.command.clone(), command_arguments);
         Command::new("ansible")
             .stdin(Stdio::piped())
             .args(command_arguments)
@@ -146,6 +152,10 @@ fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlayb
     let command_arguments = {
         let mut args: Vec<String> = Vec::new();
 
+        if let Some(v) = get_verbose_arguments_from_settings(settings) {
+            args.push(v);
+        }
+
         args.push("-K".to_string());
 
         if let Some(v) = &settings.inventory {
@@ -167,6 +177,14 @@ fn run_ansible_playbook(settings: &ClusterSettings, playbooks: Vec<&AnsiblePlayb
         .stdin(Stdio::piped())
         .args(command_arguments)
         .status()
+}
+
+fn get_verbose_arguments_from_settings(settings: &ClusterSettings) -> Option<String> {
+    match settings.verbose {
+        0 => None,
+        count if count >= 1 && count <= 4 => Some(format!("-{}", str::repeat("v", count.try_into().unwrap()))),
+        _ => None
+    }
 }
 
 #[cfg(test)]
