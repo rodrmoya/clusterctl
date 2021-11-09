@@ -36,6 +36,7 @@ impl CommandRunner for ClusterSettings {
     fn run(&self) -> Result<ExitStatus, Error>
     {
         match self.subcommand {
+            SubCommand::Fetch(ref fc) => fetch_file(self, fc),
             SubCommand::Ping(ref _gc) => run_simple_command(self, "ping", false),
             SubCommand::Reboot(ref _gc) => run_simple_command(self, "reboot", true),
             SubCommand::Run(ref rc) => run_command_in_cluster(self, &rc.command, rc.needs_become, &rc.chdir),
@@ -46,6 +47,13 @@ impl CommandRunner for ClusterSettings {
             SubCommand::Uptime(ref _uc) => run_command_in_cluster(self, "uptime", false, &Option::<String>::None)
         }
     }
+}
+
+fn fetch_file(settings: &ClusterSettings, fc: &FetchCommand) -> Result<ExitStatus, Error> {
+    AnsibleCommand::new("fetch", false, settings.host_pattern.clone())
+        .with_parameter("src", fc.src.as_str())
+        .with_parameter("dest", fc.dest.as_str())
+        .run(settings)
 }
 
 fn run_simple_command(settings: &ClusterSettings, cmd: &str, needs_become: bool) -> Result<ExitStatus, Error> {

@@ -77,14 +77,23 @@ impl AnsibleCommand {
 
             // And now all extra parameters
             if self.parameters.len() > 0 {
+                let mut action_args = String::new();
                 for param in &self.parameters {
                     if !param.0.is_empty() && !param.1.is_empty() {
-                        args.push("-a".to_string());
-                        args.push(format!("{}=\"{}\"", param.0, param.1));
+                        if action_args.is_empty() {
+                            action_args.push_str("-a ");
+                        }
+                        action_args.push_str(&format!("{}=\"{}\" ", param.0, param.1));
                     } else if !param.0.is_empty() && param.1.is_empty() {
-                        args.push("-a".to_string());
-                        args.push(param.0.to_string());
+                        if action_args.is_empty() {
+                            action_args.push_str("-a ");
+                        }
+                        action_args.push_str(&format!("{} ", param.0.to_string()));
                     }
+                }
+
+                if !action_args.is_empty() {
+                    args.push(action_args);
                 }
             }
 

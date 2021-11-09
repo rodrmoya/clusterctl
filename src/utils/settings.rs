@@ -24,6 +24,8 @@ pub struct ClusterSettings {
 
 #[derive(Clap, Debug)]
 pub enum SubCommand {
+    #[clap(about = "Fetch files from machines in the cluster")]
+    Fetch(FetchCommand),
     #[clap(about = "Ping all machines in the cluster to check they're alive and reachable")]
     Ping(GenericCommand),
     #[clap(about = "Reboot all machines in the cluster")]
@@ -44,6 +46,15 @@ pub enum SubCommand {
 
 #[derive(Clap, Debug)]
 pub struct GenericCommand;
+
+#[derive(Clap, Debug)]
+pub struct FetchCommand {
+    #[clap(long, about = "Specifify source file on the remote machine")]
+    pub src: String,
+
+    #[clap(long, about = "Specifify destination file on the local machine")]
+    pub dest: String
+}
 
 #[derive(Clap, Debug)]
 pub struct RunCommand {
@@ -141,6 +152,21 @@ mod tests {
             } else {
                 panic!("Command {:?} is wrong", settings.subcommand);
             }
+    }
+
+    #[rstest]
+    fn fetch_command_and_options_are_correctly_parsed() {
+        let settings: ClusterSettings = ClusterSettings::try_parse_from(
+            vec!["clusterctl", "--inventory", INVENTORY_FILE, "fetch", "--src", "~/.bash_profile", "--dest", "/tmp/"]
+        ).unwrap();
+
+        assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
+        if let SubCommand::Fetch(ref fc) = settings.subcommand {
+            assert_eq!(fc.src, "~/.bash_profile");
+            assert_eq!(fc.dest, "/tmp/host-bash-profile");
+        } else {
+            panic!("Command {:?} is wrong", settings.subcommand);
+        }
     }
 
     #[rstest]
