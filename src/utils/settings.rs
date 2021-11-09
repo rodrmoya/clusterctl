@@ -163,7 +163,7 @@ mod tests {
         assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
         if let SubCommand::Fetch(ref fc) = settings.subcommand {
             assert_eq!(fc.src, "~/.bash_profile");
-            assert_eq!(fc.dest, "/tmp/host-bash-profile");
+            assert_eq!(fc.dest, "/tmp/");
         } else {
             panic!("Command {:?} is wrong", settings.subcommand);
         }
