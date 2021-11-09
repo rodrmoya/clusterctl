@@ -36,12 +36,13 @@ impl CommandRunner for ClusterSettings {
     fn run(&self) -> Result<ExitStatus, Error>
     {
         match self.subcommand {
-            SubCommand::Ping(ref _pc) => run_simple_command(self, "ping", false),
-            SubCommand::Reboot(ref _rc) => run_simple_command(self, "reboot", true),
+            SubCommand::Ping(ref _gc) => run_simple_command(self, "ping", false),
+            SubCommand::Reboot(ref _gc) => run_simple_command(self, "reboot", true),
             SubCommand::Run(ref rc) => run_command_in_cluster(self, &rc.command, rc.needs_become, &rc.chdir),
             SubCommand::Service(ref sc) => run_service(self, sc),
-            SubCommand::Ssh(ref sc) => run_ssh(self, sc),
-            SubCommand::Update(ref uc) => run_update(self, uc),
+            SubCommand::Shutdown(ref _gc) => run_simple_command(self, "community.general.shutdown", true),
+            SubCommand::Ssh(ref _sc) => run_ssh(self),
+            SubCommand::Update(ref _gc) => run_update(self),
             SubCommand::Uptime(ref _uc) => run_command_in_cluster(self, "uptime", false, &Option::<String>::None)
         }
     }
@@ -101,12 +102,12 @@ fn run_delete_service(settings: &ClusterSettings, _sc: &ServiceCommand, dsc: &Se
     playbook.run(settings)
 }
 
-fn run_ssh(settings: &ClusterSettings, _sc: &SshCommand) -> Result<ExitStatus, Error> {
+fn run_ssh(settings: &ClusterSettings) -> Result<ExitStatus, Error> {
     AnsibleCommand::new("ssh", false, settings.host_pattern.clone())
         .run(settings)
 }
 
-fn run_update(settings: &ClusterSettings, _uc: &UpdateCommand) -> Result<ExitStatus, Error> {
+fn run_update(settings: &ClusterSettings) -> Result<ExitStatus, Error> {
     AnsibleCommand::new("apt", true, settings.host_pattern.clone())
         .with_parameter("update_cache", "yes")
         .with_parameter("autoremove", "yes")

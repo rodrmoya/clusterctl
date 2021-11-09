@@ -25,26 +25,25 @@ pub struct ClusterSettings {
 #[derive(Clap, Debug)]
 pub enum SubCommand {
     #[clap(about = "Ping all machines in the cluster to check they're alive and reachable")]
-    Ping(PingCommand),
+    Ping(GenericCommand),
     #[clap(about = "Reboot all machines in the cluster")]
-    Reboot(RebootCommand),
+    Reboot(GenericCommand),
     #[clap(about = "Run a command on all machines in the cluster")]
     Run(RunCommand),
     #[clap(about = "Commands to operate services on the cluster")]
     Service(ServiceCommand),
+    #[clap(about = "Shut down machines in the cluster")]
+    Shutdown(GenericCommand),
     #[clap(about = "Open a secure shell connection to a machine on the cluster")]
-    Ssh(SshCommand),
+    Ssh(GenericCommand),
     #[clap(about = "Perform OS and apps updates on all the machines in the cluster")]
-    Update(UpdateCommand),
+    Update(GenericCommand),
     #[clap(about = "Show how long machines in the cluster have been running")]
-    Uptime(UptimeCommand)
+    Uptime(GenericCommand)
 }
 
 #[derive(Clap, Debug)]
-pub struct PingCommand;
-
-#[derive(Clap, Debug)]
-pub struct RebootCommand;
+pub struct GenericCommand;
 
 #[derive(Clap, Debug)]
 pub struct RunCommand {
@@ -77,15 +76,6 @@ pub struct ServiceCommandOptions {
     pub service: String
 }
 
-#[derive(Clap, Debug)]
-pub struct SshCommand;
-
-#[derive(Clap, Debug)]
-pub struct UpdateCommand;
-
-#[derive(Clap, Debug)]
-pub struct UptimeCommand;
-
 #[cfg(test)]
 mod tests {
     use clap::Clap;
@@ -106,25 +96,26 @@ mod tests {
             vec!["clusterctl", verbosity_arg, "--inventory", INVENTORY_FILE, "update"]
         ).unwrap();
 
-        assert_eq!(settings.inventory, INVENTORY_FILE);
+        assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
 
         let verbosity_level = log::max_level();
         assert!(matches!(verbosity_level, expected_verbosity));
     }
 
     #[rstest]
-    #[case("clusterctl --inventory /tmp/inventory.yaml ping", SubCommand::Ping(PingCommand))]
-    #[case("clusterctl --inventory /tmp/inventory.yaml update", SubCommand::Update(UpdateCommand))]
-    #[case("clusterctl --inventory /tmp/inventory.yaml reboot", SubCommand::Reboot(RebootCommand))]
-    #[case("clusterctl --inventory /tmp/inventory.yaml ssh", SubCommand::Ssh(SshCommand))]
-    #[case("clusterctl --inventory /tmp/inventory.yaml uptime", SubCommand::Uptime(UptimeCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml ping", SubCommand::Ping(GenericCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml update", SubCommand::Update(GenericCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml reboot", SubCommand::Reboot(GenericCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml reboot", SubCommand::Shutdown(GenericCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml ssh", SubCommand::Ssh(GenericCommand))]
+    #[case("clusterctl --inventory /tmp/inventory.yaml uptime", SubCommand::Uptime(GenericCommand))]
     fn command_and_options_are_correctly_parsed(
         #[case] command_line: String,
         #[case] expected_subcommand: SubCommand) {
             let args: Vec<&str> = command_line.split(' ').collect();
             let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-            assert_eq!(settings.inventory, INVENTORY_FILE);
+            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
             assert!(matches!(settings.subcommand, expected_subcommand));
     }
 
@@ -141,7 +132,7 @@ mod tests {
             let args: Vec<&str> = command_line.split(' ').collect();
             let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-            assert_eq!(settings.inventory, INVENTORY_FILE);
+            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
 
             if let SubCommand::Run(ref rc) = settings.subcommand {
                 assert_eq!(rc.command, expected_command);
@@ -161,7 +152,7 @@ mod tests {
             let args: Vec<&str> = command_line.split(' ').collect();
             let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-            assert_eq!(settings.inventory, INVENTORY_FILE);
+            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
 
             if let SubCommand::Service(ref sc) = settings.subcommand {
                 if let ServiceSubCommand::Deploy(ref ssc) = sc.subcommand {
@@ -183,7 +174,7 @@ mod tests {
             let args: Vec<&str> = command_line.split(' ').collect();
             let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-            assert_eq!(settings.inventory, INVENTORY_FILE);
+            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
 
             if let SubCommand::Service(ref sc) = settings.subcommand {
                 if let ServiceSubCommand::Delete(ref ssc) = sc.subcommand {
