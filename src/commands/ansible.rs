@@ -11,6 +11,7 @@ use std::process::{Command, ExitStatus, Stdio};
 use tempfile::NamedTempFile;
 use log::info;
 use crate::ClusterSettings;
+use crate::commands::{INSTALL_DOCKER_COMMAND_PLAYBOOK, INSTALL_KUBERNETES_COMMAND_PLAYBOOK, SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK, UNINSTALL_DOCKER_COMMAND_PLAYBOOK, UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK};
 
 // Represents an Ansible command "session"
 pub struct AnsibleCommand {
@@ -115,6 +116,16 @@ impl AnsibleCommand {
 }
 
 impl AnsiblePlaybook {
+    pub fn get_available_playbooks() -> Vec<AnsiblePlaybook> {
+        vec![
+            AnsiblePlaybook::load(INSTALL_DOCKER_COMMAND_PLAYBOOK),
+            AnsiblePlaybook::load(INSTALL_KUBERNETES_COMMAND_PLAYBOOK),
+            AnsiblePlaybook::load(SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK),
+            AnsiblePlaybook::load(UNINSTALL_DOCKER_COMMAND_PLAYBOOK),
+            AnsiblePlaybook::load(UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK)
+        ]
+    }
+
     pub fn load(file_contents: &str) -> AnsiblePlaybook {
         AnsiblePlaybook {
             file_contents: String::from(file_contents)
@@ -136,6 +147,19 @@ impl AnsiblePlaybook {
 
     pub fn run(&self, settings: &ClusterSettings) -> Result<ExitStatus, Error> {
         run_ansible_playbook(settings, vec![self])
+    }
+
+    pub fn check_syntax(&self) -> Result<ExitStatus, Error> {
+        let playbook_file = self.save_to_file();
+        let command_arguments = vec![
+            "--syntax-check",
+            &playbook_file
+        ];
+
+        Command::new("ansible-playbook")
+            .stdin(Stdio::piped())
+            .args(command_arguments)
+            .status()
     }
 }
 
@@ -202,23 +226,23 @@ fn get_verbose_arguments_from_settings(settings: &ClusterSettings) -> Option<Str
 mod tests {
     use std::fs;
     use rstest::rstest;
-    use crate::commands::{INSTALL_DOCKER_COMMAND_PLAYBOOK, INSTALL_KUBERNETES_COMMAND_PLAYBOOK, SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK, UNINSTALL_DOCKER_COMMAND_PLAYBOOK, UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK};
     use super::{AnsibleCommand, AnsiblePlaybook};
 
     #[rstest]
-    #[case(INSTALL_DOCKER_COMMAND_PLAYBOOK)]
-    #[case(INSTALL_KUBERNETES_COMMAND_PLAYBOOK)]
-    #[case(SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK)]
-    #[case(UNINSTALL_DOCKER_COMMAND_PLAYBOOK)]
-    #[case(UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK)]
-    fn playbook_is_correctly_saved(
-        #[case] playbook_contents: &str) {
-            let playbook = AnsiblePlaybook::load(playbook_contents);
-            assert_eq!(playbook.file_contents, playbook_contents);
-
+    fn playbook_is_correctly_saved() {
+        for playbook in AnsiblePlaybook::get_available_playbooks() {
             let playbook_file = playbook.save_to_file();
             let saved_playbook_contents = fs::read_to_string(playbook_file).unwrap();
             assert_eq!(saved_playbook_contents, playbook.file_contents);
+        }
+    }
+
+    #[rstest]
+    fn playbooks_syntax_is_correct() {
+        for playbook in AnsiblePlaybook::get_available_playbooks() {
+            let syntax_check_result = playbook.check_syntax();
+            assert!(!syntax_check_result.is_err(), "Playbook syntax is wrong");
+        }
     }
 
     #[rstest]
