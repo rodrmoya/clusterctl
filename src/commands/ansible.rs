@@ -224,7 +224,7 @@ fn get_verbose_arguments_from_settings(settings: &ClusterSettings) -> Option<Str
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use std::{fs, process::ExitStatus};
     use rstest::rstest;
     use super::{AnsibleCommand, AnsiblePlaybook};
 
@@ -241,7 +241,7 @@ mod tests {
     fn playbooks_syntax_is_correct() {
         for playbook in AnsiblePlaybook::get_available_playbooks() {
             let syntax_check_result = playbook.check_syntax();
-            assert!(!syntax_check_result.is_err(), "Playbook syntax is wrong");
+            assert!(ExitStatus::success(&syntax_check_result.unwrap()));
         }
     }
 
