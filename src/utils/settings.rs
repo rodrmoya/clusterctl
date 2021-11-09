@@ -24,8 +24,10 @@ pub struct ClusterSettings {
 
 #[derive(Clap, Debug)]
 pub enum SubCommand {
+    #[clap(about = "Copy local files to machines in the cluster")]
+    Copy(CopyCommand),
     #[clap(about = "Fetch files from machines in the cluster")]
-    Fetch(FetchCommand),
+    Fetch(CopyCommand),
     #[clap(about = "Ping all machines in the cluster to check they're alive and reachable")]
     Ping(GenericCommand),
     #[clap(about = "Reboot all machines in the cluster")]
@@ -48,11 +50,11 @@ pub enum SubCommand {
 pub struct GenericCommand;
 
 #[derive(Clap, Debug)]
-pub struct FetchCommand {
-    #[clap(long, about = "Specifify source file on the remote machine")]
+pub struct CopyCommand {
+    #[clap(long, about = "Specifify source file on the remote or local machine")]
     pub src: String,
 
-    #[clap(long, about = "Specifify destination file on the local machine")]
+    #[clap(long, about = "Specifify destination file on the remote or local machine")]
     pub dest: String
 }
 
@@ -155,18 +157,24 @@ mod tests {
     }
 
     #[rstest]
-    fn fetch_command_and_options_are_correctly_parsed() {
-        let settings: ClusterSettings = ClusterSettings::try_parse_from(
-            vec!["clusterctl", "--inventory", INVENTORY_FILE, "fetch", "--src", "~/.bash_profile", "--dest", "/tmp/"]
-        ).unwrap();
+    #[case("clusterctl --inventory /tmp/inventory.yaml copy --src=/tmp/file --dest=/tmp/", "/tmp/file", "/tmp/")]
+    #[case("clusterctl --inventory /tmp/inventory.yaml fetch --src=/tmp/file --dest=/tmp/", "/tmp/file", "/tmp/")]
+    fn copy_command_and_options_are_correctly_parsed(
+        #[case] command_line: &str,
+        #[case] expected_src: &str,
+        #[case] expected_dest: &str) {
+            let args: Vec<&str> = command_line.split(' ').collect();
+            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-        assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
-        if let SubCommand::Fetch(ref fc) = settings.subcommand {
-            assert_eq!(fc.src, "~/.bash_profile");
-            assert_eq!(fc.dest, "/tmp/");
-        } else {
-            panic!("Command {:?} is wrong", settings.subcommand);
-        }
+            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
+
+            match settings.subcommand {
+                SubCommand::Copy(cc) | SubCommand::Fetch(cc) => {
+                    assert_eq!(expected_src, cc.src);
+                    assert_eq!(expected_dest, cc.dest);
+                },
+                _ => panic!("Command {:?} is wrong", settings.subcommand)
+            };
     }
 
     #[rstest]
