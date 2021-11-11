@@ -9,8 +9,8 @@ use std::io::Error;
 use clap::Clap;
 use simple_logger::SimpleLogger;
 
-pub mod commands;
-pub mod utils;
+mod commands;
+mod utils;
 use utils::settings::ClusterSettings;
 use commands::CommandRunner;
 

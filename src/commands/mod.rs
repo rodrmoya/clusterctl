@@ -11,8 +11,7 @@ use std::process::ExitStatus;
 use log::{info, error};
 
 mod ansible;
-pub use ansible::AnsiblePlaybook;
-use crate::commands::ansible::{AnsibleAggregatePlaybook, AnsibleCommand};
+use crate::commands::ansible::{AnsibleAggregatePlaybook, AnsibleCommand, AnsiblePlaybook};
 
 use crate::utils::settings::*;
 
