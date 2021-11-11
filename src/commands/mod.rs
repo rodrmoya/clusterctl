@@ -8,7 +8,7 @@ use std::include_str;
 use std::io::{Error, ErrorKind};
 use std::process::ExitStatus;
 
-use log::{info, error};
+use log::{error, info, trace};
 
 mod ansible;
 use crate::commands::ansible::{AnsibleAggregatePlaybook, AnsibleCommand, AnsiblePlaybook};

@@ -12,21 +12,12 @@ use tempfile::NamedTempFile;
 use log::info;
 use crate::utils::settings::ClusterSettings;
 
-// Represents an Ansible command "session"
+/// Represents an Ansible command "session"
 pub struct AnsibleCommand {
     command: String,
     needs_become: bool,
     host_pattern: Option<String>,
     parameters: HashMap<String, String>
-}
-
-// Represents a single Ansible playbook
-pub struct AnsiblePlaybook {
-    file_contents: String
-}
-
-pub struct AnsibleAggregatePlaybook {
-    playbooks: Vec<AnsiblePlaybook>
 }
 
 impl AnsibleCommand {
@@ -151,9 +142,16 @@ impl AnsibleCommand {
     }
 }
 
+/// Represents a single Ansible playbook
+pub struct AnsiblePlaybook {
+    file_contents: String
+}
+
 impl AnsiblePlaybook {
     #[cfg(test)]
     pub fn get_available_playbooks() -> Vec<AnsiblePlaybook> {
+        use crate::commands::{INSTALL_DOCKER_COMMAND_PLAYBOOK, INSTALL_KUBERNETES_COMMAND_PLAYBOOK, SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK, UNINSTALL_DOCKER_COMMAND_PLAYBOOK, UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK};
+
         vec![
             AnsiblePlaybook::load(INSTALL_DOCKER_COMMAND_PLAYBOOK),
             AnsiblePlaybook::load(INSTALL_KUBERNETES_COMMAND_PLAYBOOK),
@@ -199,6 +197,11 @@ impl AnsiblePlaybook {
             .args(command_arguments)
             .status()
     }
+}
+
+/// Represents a set of Ansible playbooks to be run together
+pub struct AnsibleAggregatePlaybook {
+    playbooks: Vec<AnsiblePlaybook>
 }
 
 impl AnsibleAggregatePlaybook {
