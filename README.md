@@ -63,6 +63,7 @@ SUBCOMMANDS:
     copy        Copy local files to machines in the cluster
     fetch       Fetch files from machines in the cluster
     help        Print this message or the help of the given subcommand(s)
+    list        List hosts in the cluster, settings, etc
     ping        Ping all machines in the cluster to check they're alive and reachable
     reboot      Reboot all machines in the cluster
     run         Run a command on all machines in the cluster
