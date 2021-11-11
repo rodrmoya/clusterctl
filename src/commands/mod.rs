@@ -6,7 +6,7 @@
 
 use std::include_str;
 use std::io::{Error, ErrorKind};
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::ExitStatus;
 
 use log::{error, info};
 
@@ -43,11 +43,11 @@ impl CommandRunner for ClusterSettings {
                 AnsibleCommand::new_fetch_command(false, self.host_pattern.clone(), cc.src.as_str(), cc.dest.as_str())
                     .run(self)
             },
-            SubCommand::List(ref lc) => {
-                if lc.resources == "hosts" {
-                    ansible::list_hosts(self)
-                } else {
-                    Err(Error::new(ErrorKind::Other, format!("Unknown resource type '{}'", lc.resources)))
+            SubCommand::Inventory(ref lc) => {
+                match &lc.subcommand {
+                    &InventorySubCommand::List(ref _options) => {
+                        ansible::list_hosts(self)
+                    }
                 }
             },
             SubCommand::Ping(ref _gc) => {
@@ -64,8 +64,8 @@ impl CommandRunner for ClusterSettings {
             },
             SubCommand::Service(ref sc) => {
                 match &sc.subcommand {
-                    ServiceSubCommand::Deploy(ref dsc) => run_deploy_service(self, sc, dsc),
-                    ServiceSubCommand::Delete(ref dsc) => run_delete_service(self, sc, dsc)
+                    ServiceSubCommand::Deploy(ref options) => run_deploy_service(self, sc, options),
+                    ServiceSubCommand::Delete(ref options) => run_delete_service(self, sc, options)
                 }
             },
             SubCommand::Shutdown(ref _gc) => {
@@ -88,17 +88,17 @@ impl CommandRunner for ClusterSettings {
     }
 }
 
-fn run_deploy_service(settings: &ClusterSettings, _sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
+fn run_deploy_service(settings: &ClusterSettings, _sc: &ServiceCommand, options: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
-    info!("Deploying service '{}' to cluster", &dsc.service);
-    if dsc.service == SERVICE_NAME_KUBERNETES {
+    info!("Deploying service '{}' to cluster", &options.service);
+    if options.service == SERVICE_NAME_KUBERNETES {
         playbook.add_playbook(AnsiblePlaybook::load(INSTALL_KUBERNETES_COMMAND_PLAYBOOK));
         playbook.add_playbook(AnsiblePlaybook::load(SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK));
-    } else if dsc.service == SERVICE_NAME_DOCKER {
+    } else if options.service == SERVICE_NAME_DOCKER {
         playbook.add_playbook(AnsiblePlaybook::load(INSTALL_DOCKER_COMMAND_PLAYBOOK));
     } else {
-        let msg = format!("Unknown service '{}', can't deploy", dsc.service);
+        let msg = format!("Unknown service '{}', can't deploy", options.service);
         error!("{}", msg);
         return Err(Error::new(ErrorKind::Other, msg));
     }
@@ -106,16 +106,16 @@ fn run_deploy_service(settings: &ClusterSettings, _sc: &ServiceCommand, dsc: &Se
     playbook.run(settings)
 }
 
-fn run_delete_service(settings: &ClusterSettings, _sc: &ServiceCommand, dsc: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
+fn run_delete_service(settings: &ClusterSettings, _sc: &ServiceCommand, options: &ServiceCommandOptions) -> Result<ExitStatus, Error> {
     let mut playbook = AnsibleAggregatePlaybook::new();
 
-    info!("Deleting service '{}' from cluster", &dsc.service);
-    if dsc.service == SERVICE_NAME_KUBERNETES {
+    info!("Deleting service '{}' from cluster", &options.service);
+    if options.service == SERVICE_NAME_KUBERNETES {
         playbook.add_playbook(AnsiblePlaybook::load(UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK));
-    } else if dsc.service == SERVICE_NAME_DOCKER {
+    } else if options.service == SERVICE_NAME_DOCKER {
         playbook.add_playbook(AnsiblePlaybook::load(UNINSTALL_DOCKER_COMMAND_PLAYBOOK));
     } else {
-        let msg = format!("Unknown service '{}', can't deploy", dsc.service);
+        let msg = format!("Unknown service '{}', can't deploy", options.service);
         error!("{}", msg);
         return Err(Error::new(ErrorKind::Other, msg));
     }

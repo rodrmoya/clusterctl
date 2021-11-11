@@ -60,17 +60,17 @@ OPTIONS:
             Host pattern. If not specified, all machines in the cluster is assumed
 
 SUBCOMMANDS:
-    copy        Copy local files to machines in the cluster
-    fetch       Fetch files from machines in the cluster
-    help        Print this message or the help of the given subcommand(s)
-    list        List hosts in the cluster, settings, etc
-    ping        Ping all machines in the cluster to check they're alive and reachable
-    reboot      Reboot all machines in the cluster
-    run         Run a command on all machines in the cluster
-    service     Commands to operate services on the cluster
-    shutdown    Shut down machines in the cluster
-    ssh         Open a secure shell connection to a machine on the cluster
-    update      Perform OS and apps updates on all the machines in the cluster
-    uptime      Show how long machines in the cluster have been running
+    copy         Copy local files to machines in the cluster
+    fetch        Fetch files from machines in the cluster
+    help         Print this message or the help of the given subcommand(s)
+    inventory    Commands to operate on the configured inventory
+    ping         Ping all machines in the cluster to check they're alive and reachable
+    reboot       Reboot all machines in the cluster
+    run          Run a command on all machines in the cluster
+    service      Commands to operate services on the cluster
+    shutdown     Shut down machines in the cluster
+    ssh          Open a secure shell connection to a machine on the cluster
+    update       Perform OS and apps updates on all the machines in the cluster
+    uptime       Show how long machines in the cluster have been running
 ```
 The `--inventory` argument is required if your local Ansible installation is not [configured](https://docs.ansible.com/ansible/latest/reference_appendices/config.html).

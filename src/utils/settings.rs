@@ -28,8 +28,8 @@ pub enum SubCommand {
     Copy(CopyCommand),
     #[clap(about = "Fetch files from machines in the cluster")]
     Fetch(CopyCommand),
-    #[clap(about = "List hosts in the cluster, settings, etc")]
-    List(ListCommand),
+    #[clap(about = "Commands to operate on the configured inventory")]
+    Inventory(InventoryCommand),
     #[clap(about = "Ping all machines in the cluster to check they're alive and reachable")]
     Ping(GenericCommand),
     #[clap(about = "Reboot all machines in the cluster")]
@@ -61,10 +61,19 @@ pub struct CopyCommand {
 }
 
 #[derive(Clap, Debug)]
-pub struct ListCommand {
-    #[clap(about = "Resources to list (valid values are 'hosts')")]
-    pub resources: String
+pub struct InventoryCommand {
+    #[clap(subcommand)]
+    pub subcommand: InventorySubCommand
 }
+
+#[derive(Clap, Debug)]
+pub enum InventorySubCommand {
+    #[clap(about = "List all configured hosts in the inventory")]
+    List(InventoryCommandOptions)
+}
+
+#[derive(Clap, Debug)]
+pub struct InventoryCommandOptions;
 
 #[derive(Clap, Debug)]
 pub struct RunCommand {
@@ -138,21 +147,6 @@ mod tests {
 
         assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
         assert!(matches!(settings.subcommand, expected_subcommand));
-    }
-
-    #[rstest]
-    #[case("clusterctl --inventory /tmp/inventory.yaml list hosts", "hosts")]
-    fn list_command_and_options_are_correctly_parsed(
-        #[case] command_line: &str,
-        #[case] expected_resource: &str) {
-        let args: Vec<&str> = command_line.split(' ').collect();
-        let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
-
-        if let SubCommand::List(ref lc) = settings.subcommand {
-            assert_eq!(lc.resources, expected_resource);
-        } else {
-            panic!("Command {:?} is wrong", settings.subcommand);
-        }
     }
 
     #[rstest]
