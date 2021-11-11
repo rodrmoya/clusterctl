@@ -12,6 +12,27 @@ use tempfile::NamedTempFile;
 use log::info;
 use crate::utils::settings::ClusterSettings;
 
+/// Lists all hosts and groups in the configured inventory file.
+pub fn list_hosts(settings: &ClusterSettings) -> Result<ExitStatus, Error> {
+    let command_arguments = {
+        let mut args: Vec<String> = Vec::new();
+
+        args.push("--graph".to_string());
+        args.push("--vars".to_string());
+        if let Some(v) = &settings.inventory {
+            args.push("--inventory".to_string());
+            args.push(v.clone());
+        }
+
+        args
+    };
+
+    Command::new("ansible-inventory")
+        .stdin(Stdio::piped())
+        .args(command_arguments)
+        .status()
+}
+
 /// Represents an Ansible command "session"
 pub struct AnsibleCommand {
     command: String,

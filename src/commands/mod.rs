@@ -45,10 +45,7 @@ impl CommandRunner for ClusterSettings {
             },
             SubCommand::List(ref lc) => {
                 if lc.resources == "hosts" {
-                    Command::new("ansible-inventory")
-                        .stdin(Stdio::piped())
-                        .args(vec!["--graph", "--vars"])
-                        .status()
+                    ansible::list_hosts(self)
                 } else {
                     Err(Error::new(ErrorKind::Other, format!("Unknown resource type '{}'", lc.resources)))
                 }
