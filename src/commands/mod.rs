@@ -35,43 +35,49 @@ impl CommandRunner for ClusterSettings {
     fn run(&self) -> Result<ExitStatus, Error>
     {
         match self.subcommand {
-            SubCommand::Copy(ref cc) => copy_or_fetch_file(self, "copy", cc),
-            SubCommand::Fetch(ref cc) => copy_or_fetch_file(self, "fetch", cc),
-            SubCommand::Ping(ref _gc) => run_simple_command(self, "ping", false),
-            SubCommand::Reboot(ref _gc) => run_simple_command(self, "reboot", true),
-            SubCommand::Run(ref rc) => run_command_in_cluster(self, &rc.command, rc.needs_become, &rc.chdir),
-            SubCommand::Service(ref sc) => run_service(self, sc),
-            SubCommand::Shutdown(ref _gc) => run_simple_command(self, "community.general.shutdown", true),
-            SubCommand::Ssh(ref _sc) => run_ssh(self),
-            SubCommand::Update(ref _gc) => run_update(self),
-            SubCommand::Uptime(ref _uc) => run_command_in_cluster(self, "uptime", false, &Option::<String>::None)
+            SubCommand::Copy(ref cc) => {
+                AnsibleCommand::new_copy_command(false, self.host_pattern.clone(), cc.src.as_str(), cc.dest.as_str())
+                    .run(self)
+            },
+            SubCommand::Fetch(ref cc) => {
+                AnsibleCommand::new_fetch_command(false, self.host_pattern.clone(), cc.src.as_str(), cc.dest.as_str())
+                    .run(self)
+            },
+            SubCommand::Ping(ref _gc) => {
+                AnsibleCommand::new("ping", false, self.host_pattern.clone())
+                    .run(self)
+            },
+            SubCommand::Reboot(ref _gc) => {
+                AnsibleCommand::new("reboot", true, self.host_pattern.clone())
+                    .run(self)
+            },
+            SubCommand::Run(ref rc) => {
+                AnsibleCommand::new_run_command(&rc.command, rc.needs_become, self.host_pattern.clone(), rc.chdir.clone())
+                    .run(self)
+            },
+            SubCommand::Service(ref sc) => {
+                match &sc.subcommand {
+                    ServiceSubCommand::Deploy(ref dsc) => run_deploy_service(self, sc, dsc),
+                    ServiceSubCommand::Delete(ref dsc) => run_delete_service(self, sc, dsc)
+                }
+            },
+            SubCommand::Shutdown(ref _gc) => {
+                AnsibleCommand::new("community.general.shutdown", true, self.host_pattern.clone())
+                    .run(self)
+            },
+            SubCommand::Ssh(ref _sc) => {
+                AnsibleCommand::new("ssh", false, self.host_pattern.clone())
+                    .run(self)
+            },
+            SubCommand::Update(ref _gc) => {
+                AnsibleCommand::new_update_command(self.host_pattern.clone())
+                    .run(self)
+            },
+            SubCommand::Uptime(ref _uc) => {
+                AnsibleCommand::new_run_command("uptime", false, self.host_pattern.clone(), Option::<String>::None)
+                    .run(self)
+            }
         }
-    }
-}
-
-fn copy_or_fetch_file(settings: &ClusterSettings, ansible_cmd: &str, cc: &CopyCommand) -> Result<ExitStatus, Error> {
-    AnsibleCommand::new(ansible_cmd, false, settings.host_pattern.clone())
-        .with_parameter("src", cc.src.as_str())
-        .with_parameter("dest", cc.dest.as_str())
-        .run(settings)
-}
-
-fn run_simple_command(settings: &ClusterSettings, cmd: &str, needs_become: bool) -> Result<ExitStatus, Error> {
-    AnsibleCommand::new(cmd, needs_become, settings.host_pattern.clone())
-        .run(settings)
-}
-
-fn run_command_in_cluster(settings: &ClusterSettings, command: &str, needs_become: bool, chdir: &Option<String>) -> Result<ExitStatus, Error> {
-    AnsibleCommand::new(&String::new(), needs_become, settings.host_pattern.clone())
-        .with_parameter(command, &String::new())
-        .with_optional_parameter("chdir", chdir)
-        .run(settings)
-}
-
-fn run_service(settings: &ClusterSettings, sc: &ServiceCommand) -> Result<ExitStatus, Error> {
-    match &sc.subcommand {
-        ServiceSubCommand::Deploy(ref dsc) => run_deploy_service(settings, sc, dsc),
-        ServiceSubCommand::Delete(ref dsc) => run_delete_service(settings, sc, dsc)
     }
 }
 
@@ -108,18 +114,4 @@ fn run_delete_service(settings: &ClusterSettings, _sc: &ServiceCommand, dsc: &Se
     }
 
     playbook.run(settings)
-}
-
-fn run_ssh(settings: &ClusterSettings) -> Result<ExitStatus, Error> {
-    AnsibleCommand::new("ssh", false, settings.host_pattern.clone())
-        .run(settings)
-}
-
-fn run_update(settings: &ClusterSettings) -> Result<ExitStatus, Error> {
-    AnsibleCommand::new("apt", true, settings.host_pattern.clone())
-        .with_parameter("update_cache", "yes")
-        .with_parameter("autoremove", "yes")
-        .with_parameter("force_apt_get", "yes")
-        .with_parameter("upgrade", "yes")
-        .run(settings)
 }

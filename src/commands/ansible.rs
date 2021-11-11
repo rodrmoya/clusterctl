@@ -10,8 +10,7 @@ use std::io::{Error, Write};
 use std::process::{Command, ExitStatus, Stdio};
 use tempfile::NamedTempFile;
 use log::info;
-use crate::ClusterSettings;
-use crate::commands::{INSTALL_DOCKER_COMMAND_PLAYBOOK, INSTALL_KUBERNETES_COMMAND_PLAYBOOK, SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK, UNINSTALL_DOCKER_COMMAND_PLAYBOOK, UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK};
+use crate::utils::settings::ClusterSettings;
 
 // Represents an Ansible command "session"
 pub struct AnsibleCommand {
@@ -39,6 +38,43 @@ impl AnsibleCommand {
             parameters: HashMap::new()
         }
     }
+
+    /// Creates a new `AnsibleCommand` instance for copying local files to remote machines.
+    pub fn new_copy_command(
+        needs_become: bool,
+        host_pattern: Option<String>,
+        src: &str,
+        dest: &str) -> AnsibleCommand {
+        AnsibleCommand::new("copy", needs_become, host_pattern)
+            .with_parameter("src", src)
+            .with_parameter("dest", dest)
+    }
+
+    /// Creates a new `AnsibleCommand` instance for fetching files from remote machines.
+    pub fn new_fetch_command(
+        needs_become: bool,
+        host_pattern: Option<String>,
+        src: &str,
+        dest: &str) -> AnsibleCommand {
+        AnsibleCommand::new("fetch", needs_become, host_pattern)
+            .with_parameter("src", src)
+            .with_parameter("dest", dest)
+    }
+
+    pub fn new_run_command(command: &str, needs_become: bool, host_pattern: Option<String>, chdir: Option<String>) -> AnsibleCommand {
+        AnsibleCommand::new(&String::new(), needs_become, host_pattern.clone())
+            .with_parameter(command, &String::new())
+            .with_optional_parameter("chdir", &chdir)
+    }
+
+    /// Creates a new `AnsibleCommand` instance for updating remore machines.
+    pub fn new_update_command(host_pattern: Option<String>) -> AnsibleCommand {
+        AnsibleCommand::new("apt", true, host_pattern.clone())
+            .with_parameter("update_cache", "yes")
+            .with_parameter("autoremove", "yes")
+            .with_parameter("force_apt_get", "yes")
+            .with_parameter("upgrade", "yes")
+        }
 
     pub fn with_parameter(mut self, param_name: &str, param_value: &str) -> Self {
         self.parameters.insert(param_name.to_string(), param_value.to_string());
@@ -116,6 +152,7 @@ impl AnsibleCommand {
 }
 
 impl AnsiblePlaybook {
+    #[cfg(test)]
     pub fn get_available_playbooks() -> Vec<AnsiblePlaybook> {
         vec![
             AnsiblePlaybook::load(INSTALL_DOCKER_COMMAND_PLAYBOOK),
@@ -149,6 +186,7 @@ impl AnsiblePlaybook {
         run_ansible_playbook(settings, vec![self])
     }
 
+    #[cfg(test)]
     pub fn check_syntax(&self) -> Result<ExitStatus, Error> {
         let playbook_file = self.save_to_file();
         let command_arguments = vec![
