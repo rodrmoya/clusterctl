@@ -28,6 +28,8 @@ pub enum SubCommand {
     Copy(CopyCommand),
     #[clap(about = "Fetch files from machines in the cluster")]
     Fetch(CopyCommand),
+    #[clap(about = "List hosts in the cluster, settings, etc")]
+    List(ListCommand),
     #[clap(about = "Ping all machines in the cluster to check they're alive and reachable")]
     Ping(GenericCommand),
     #[clap(about = "Reboot all machines in the cluster")]
@@ -56,6 +58,12 @@ pub struct CopyCommand {
 
     #[clap(long, about = "Specifify destination file on the remote or local machine")]
     pub dest: String
+}
+
+#[derive(Clap, Debug)]
+pub struct ListCommand {
+    #[clap(about = "Resources to list (valid values are 'hosts')")]
+    pub resources: String
 }
 
 #[derive(Clap, Debug)]
@@ -125,11 +133,26 @@ mod tests {
     fn command_and_options_are_correctly_parsed(
         #[case] command_line: String,
         #[case] expected_subcommand: SubCommand) {
-            let args: Vec<&str> = command_line.split(' ').collect();
-            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+        let args: Vec<&str> = command_line.split(' ').collect();
+        let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
-            assert!(matches!(settings.subcommand, expected_subcommand));
+        assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
+        assert!(matches!(settings.subcommand, expected_subcommand));
+    }
+
+    #[rstest]
+    #[case("clusterctl --inventory /tmp/inventory.yaml list hosts", "hosts")]
+    fn list_command_and_options_are_correctly_parsed(
+        #[case] command_line: &str,
+        #[case] expected_resource: &str) {
+        let args: Vec<&str> = command_line.split(' ').collect();
+        let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+
+        if let SubCommand::List(ref lc) = settings.subcommand {
+            assert_eq!(lc.resources, expected_resource);
+        } else {
+            panic!("Command {:?} is wrong", settings.subcommand);
+        }
     }
 
     #[rstest]
@@ -142,18 +165,18 @@ mod tests {
         #[case] expected_command: &str,
         #[case] expected_directory: Option<String>,
         #[case] expected_needs_become: bool) {
-            let args: Vec<&str> = command_line.split(' ').collect();
-            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+        let args: Vec<&str> = command_line.split(' ').collect();
+        let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
+        assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
 
-            if let SubCommand::Run(ref rc) = settings.subcommand {
-                assert_eq!(rc.command, expected_command);
-                assert_eq!(rc.chdir, expected_directory);
-                assert_eq!(rc.needs_become, expected_needs_become);
-            } else {
-                panic!("Command {:?} is wrong", settings.subcommand);
-            }
+        if let SubCommand::Run(ref rc) = settings.subcommand {
+            assert_eq!(rc.command, expected_command);
+            assert_eq!(rc.chdir, expected_directory);
+            assert_eq!(rc.needs_become, expected_needs_become);
+        } else {
+            panic!("Command {:?} is wrong", settings.subcommand);
+        }
     }
 
     #[rstest]
@@ -163,18 +186,18 @@ mod tests {
         #[case] command_line: &str,
         #[case] expected_src: &str,
         #[case] expected_dest: &str) {
-            let args: Vec<&str> = command_line.split(' ').collect();
-            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+        let args: Vec<&str> = command_line.split(' ').collect();
+        let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
+        assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
 
-            match settings.subcommand {
-                SubCommand::Copy(cc) | SubCommand::Fetch(cc) => {
-                    assert_eq!(expected_src, cc.src);
-                    assert_eq!(expected_dest, cc.dest);
-                },
-                _ => panic!("Command {:?} is wrong", settings.subcommand)
-            };
+        match settings.subcommand {
+            SubCommand::Copy(cc) | SubCommand::Fetch(cc) => {
+                assert_eq!(expected_src, cc.src);
+                assert_eq!(expected_dest, cc.dest);
+            },
+            _ => panic!("Command {:?} is wrong", settings.subcommand)
+        };
     }
 
     #[rstest]
@@ -183,20 +206,20 @@ mod tests {
     fn service_deploy_command_and_options_are_correctly_parsed(
         #[case] command_line: &str,
         #[case] expected_service_name: &str) {
-            let args: Vec<&str> = command_line.split(' ').collect();
-            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+        let args: Vec<&str> = command_line.split(' ').collect();
+        let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
+        assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
 
-            if let SubCommand::Service(ref sc) = settings.subcommand {
-                if let ServiceSubCommand::Deploy(ref ssc) = sc.subcommand {
-                    assert_eq!(ssc.service, expected_service_name);
-                } else {
-                    panic!("Subcommand {:?} is wrong", sc.subcommand);
-                }
+        if let SubCommand::Service(ref sc) = settings.subcommand {
+            if let ServiceSubCommand::Deploy(ref ssc) = sc.subcommand {
+                assert_eq!(ssc.service, expected_service_name);
             } else {
-                panic!("Command {:?} is wrong", settings.subcommand);
+                panic!("Subcommand {:?} is wrong", sc.subcommand);
             }
+        } else {
+            panic!("Command {:?} is wrong", settings.subcommand);
+        }
     }
 
     #[rstest]
@@ -205,19 +228,19 @@ mod tests {
     fn service_delete_command_and_options_are_correctly_parsed(
         #[case] command_line: &str,
         #[case] expected_service_name: &str) {
-            let args: Vec<&str> = command_line.split(' ').collect();
-            let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
+        let args: Vec<&str> = command_line.split(' ').collect();
+        let settings: ClusterSettings = ClusterSettings::try_parse_from(args).unwrap();
 
-            assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
+        assert_eq!(settings.inventory.unwrap(), INVENTORY_FILE);
 
-            if let SubCommand::Service(ref sc) = settings.subcommand {
-                if let ServiceSubCommand::Delete(ref ssc) = sc.subcommand {
-                    assert_eq!(ssc.service, expected_service_name);
-                } else {
-                    panic!("Subcommand {:?} is wrong", sc.subcommand);
-                }
+        if let SubCommand::Service(ref sc) = settings.subcommand {
+            if let ServiceSubCommand::Delete(ref ssc) = sc.subcommand {
+                assert_eq!(ssc.service, expected_service_name);
             } else {
-                panic!("Command {:?} is wrong", settings.subcommand);
+                panic!("Subcommand {:?} is wrong", sc.subcommand);
             }
+        } else {
+            panic!("Command {:?} is wrong", settings.subcommand);
+        }
     }
 }

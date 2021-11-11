@@ -6,9 +6,9 @@
 
 use std::include_str;
 use std::io::{Error, ErrorKind};
-use std::process::ExitStatus;
+use std::process::{Command, ExitStatus, Stdio};
 
-use log::{error, info, trace};
+use log::{error, info};
 
 mod ansible;
 use crate::commands::ansible::{AnsibleAggregatePlaybook, AnsibleCommand, AnsiblePlaybook};
@@ -42,6 +42,16 @@ impl CommandRunner for ClusterSettings {
             SubCommand::Fetch(ref cc) => {
                 AnsibleCommand::new_fetch_command(false, self.host_pattern.clone(), cc.src.as_str(), cc.dest.as_str())
                     .run(self)
+            },
+            SubCommand::List(ref lc) => {
+                if lc.resources == "hosts" {
+                    Command::new("ansible-inventory")
+                        .stdin(Stdio::piped())
+                        .args(vec!["--graph", "--vars"])
+                        .status()
+                } else {
+                    Err(Error::new(ErrorKind::Other, format!("Unknown resource type '{}'", lc.resources)))
+                }
             },
             SubCommand::Ping(ref _gc) => {
                 AnsibleCommand::new("ping", false, self.host_pattern.clone())
