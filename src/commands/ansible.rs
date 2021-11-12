@@ -27,6 +27,7 @@ pub fn list_hosts(settings: &ClusterSettings) -> Result<ExitStatus, Error> {
         args
     };
 
+    info!("Executing Ansible command {} {:?}", "ansible-inventory", command_arguments);
     Command::new("ansible-inventory")
         .stdin(Stdio::piped())
         .args(command_arguments)

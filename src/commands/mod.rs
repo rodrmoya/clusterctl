@@ -39,47 +39,57 @@ impl CommandRunner for ClusterSettings {
                 AnsibleCommand::new_copy_command(false, self.host_pattern.clone(), cc.src.as_str(), cc.dest.as_str())
                     .run(self)
             },
+
             SubCommand::Fetch(ref cc) => {
                 AnsibleCommand::new_fetch_command(false, self.host_pattern.clone(), cc.src.as_str(), cc.dest.as_str())
                     .run(self)
             },
-            SubCommand::Inventory(ref lc) => {
-                match &lc.subcommand {
+
+            SubCommand::Inventory(ref ic) => {
+                match &ic.subcommand {
                     &InventorySubCommand::List(ref _options) => {
                         ansible::list_hosts(self)
                     }
                 }
             },
+
             SubCommand::Ping(ref _gc) => {
                 AnsibleCommand::new("ping", false, self.host_pattern.clone())
                     .run(self)
             },
+
             SubCommand::Reboot(ref _gc) => {
                 AnsibleCommand::new("reboot", true, self.host_pattern.clone())
                     .run(self)
             },
+
             SubCommand::Run(ref rc) => {
                 AnsibleCommand::new_run_command(&rc.command, rc.needs_become, self.host_pattern.clone(), rc.chdir.clone())
                     .run(self)
             },
+
             SubCommand::Service(ref sc) => {
                 match &sc.subcommand {
                     ServiceSubCommand::Deploy(ref options) => run_deploy_service(self, sc, options),
                     ServiceSubCommand::Delete(ref options) => run_delete_service(self, sc, options)
                 }
             },
+
             SubCommand::Shutdown(ref _gc) => {
                 AnsibleCommand::new("community.general.shutdown", true, self.host_pattern.clone())
                     .run(self)
             },
+
             SubCommand::Ssh(ref _sc) => {
                 AnsibleCommand::new("ssh", false, self.host_pattern.clone())
                     .run(self)
             },
+
             SubCommand::Update(ref _gc) => {
                 AnsibleCommand::new_update_command(self.host_pattern.clone())
                     .run(self)
             },
+
             SubCommand::Uptime(ref _uc) => {
                 AnsibleCommand::new_run_command("uptime", false, self.host_pattern.clone(), Option::<String>::None)
                     .run(self)
