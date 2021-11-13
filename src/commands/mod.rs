@@ -61,7 +61,6 @@ impl CommandRunner for ClusterSettings {
                         ansible::list_hosts(self)
                     },
                     &InventorySubCommand::Show(ref _options) => {
-                        //AnsibleCommand::new("gather_facts", false, self.host_pattern.clone())
                         AnsiblePlaybook::load(SHOW_HOSTS_DETAILS_COMMAND_PLAYBOOK)
                             .run(self)
                     }
@@ -86,7 +85,11 @@ impl CommandRunner for ClusterSettings {
             SubCommand::Service(ref sc) => {
                 match &sc.subcommand {
                     ServiceSubCommand::Deploy(ref options) => run_deploy_service(self, sc, options),
-                    ServiceSubCommand::Delete(ref options) => run_delete_service(self, sc, options)
+                    ServiceSubCommand::Delete(ref options) => run_delete_service(self, sc, options),
+                    &ServiceSubCommand::List(ref _options) => {
+                        AnsibleCommand::new("service_facts", false, self.host_pattern.clone())
+                            .run(self)
+                    }
                 }
             },
 

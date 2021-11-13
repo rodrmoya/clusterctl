@@ -52,6 +52,9 @@ pub enum SubCommand {
 pub struct GenericCommand;
 
 #[derive(Clap, Debug)]
+pub struct GenericCommandOptions;
+
+#[derive(Clap, Debug)]
 pub struct CopyCommand {
     #[clap(long, about = "Specifify source file on the remote or local machine")]
     pub src: String,
@@ -99,8 +102,12 @@ pub struct ServiceCommand {
 pub enum ServiceSubCommand {
     #[clap(about = "Deploy a service on the cluster")]
     Deploy(ServiceCommandOptions),
+    
     #[clap(about = "Delete a service from the cluster")]
-    Delete(ServiceCommandOptions)
+    Delete(ServiceCommandOptions),
+
+    #[clap(about = "List services running in the cluster machines")]
+    List(GenericCommandOptions)
 }
 
 #[derive(Clap, Debug)]
