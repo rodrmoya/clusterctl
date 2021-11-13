@@ -58,6 +58,10 @@ impl CommandRunner for ClusterSettings {
                 match &ic.subcommand {
                     &InventorySubCommand::List(ref _options) => {
                         ansible::list_hosts(self)
+                    },
+                    &InventorySubCommand::Show(ref _options) => {
+                        AnsibleCommand::new("gather_facts", false, self.host_pattern.clone())
+                            .run(self)
                     }
                 }
             },

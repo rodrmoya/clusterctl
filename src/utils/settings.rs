@@ -69,7 +69,10 @@ pub struct InventoryCommand {
 #[derive(Clap, Debug)]
 pub enum InventorySubCommand {
     #[clap(about = "List all configured hosts in the inventory")]
-    List(InventoryCommandOptions)
+    List(InventoryCommandOptions),
+
+    #[clap(about = "Show details about all machines in the inventory")]
+    Show(InventoryCommandOptions)
 }
 
 #[derive(Clap, Debug)]
