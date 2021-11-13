@@ -9,15 +9,16 @@ use std::io::Error;
 use clap::Clap;
 use simple_logger::SimpleLogger;
 
-mod commands;
 mod utils;
 use utils::settings::ClusterSettings;
+mod commands;
 use commands::CommandRunner;
 
 fn main() -> Result<(), Error> {
     SimpleLogger::new().init().unwrap();
-    let settings: ClusterSettings = ClusterSettings::parse();
 
+    let settings: ClusterSettings = ClusterSettings::parse();
     settings.run()?;
+
     Ok(())
 }

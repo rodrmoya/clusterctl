@@ -34,6 +34,15 @@ pub trait CommandRunner {
 impl CommandRunner for ClusterSettings {
     fn run(&self) -> Result<ExitStatus, Error>
     {
+        let log_level = match self.verbose {
+            0 => log::LevelFilter::Off,
+            1 => log::LevelFilter::Error,
+            2 => log::LevelFilter::Warn,
+            3 => log::LevelFilter::Debug,
+            _ => log::LevelFilter::Trace
+        };
+        log::set_max_level(log_level);
+
         match self.subcommand {
             SubCommand::Copy(ref cc) => {
                 AnsibleCommand::new_copy_command(false, self.host_pattern.clone(), cc.src.as_str(), cc.dest.as_str())
