@@ -1,0 +1,15 @@
+---
+- name: Show hosts details
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Print out host details
+      debug:
+        msg: >-
+          os: {{ ansible_system }} ({{ ansible_os_family }}),
+          architecture: {{ ansible_architecture }},
+          distro: {{ ansible_distribution }} {{ ansible_distribution_version }} ({{ ansible_distribution_release }}),
+          kernel: {{ ansible_kernel }},
+          date: {{ ansible_date_time.date }} {{ ansible_date_time.time }},
+          ip_address: {{ ansible_default_ipv4.address }},
+          memory: {{ ansible_memory_mb.real }}

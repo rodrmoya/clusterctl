@@ -16,6 +16,7 @@ use crate::commands::ansible::{AnsibleAggregatePlaybook, AnsibleCommand, Ansible
 use crate::utils::settings::*;
 
 // Command names, which are also playbook file names
+const SHOW_HOSTS_DETAILS_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/show-hosts-details.yaml");
 const INSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/install-kubernetes.yaml");
 const UNINSTALL_KUBERNETES_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/uninstall-kubernetes.yaml");
 const SETUP_KUBERNETES_CLUSTER_COMMAND_PLAYBOOK: &str = include_str!("../../playbooks/setup-kubernetes-cluster.yaml");
@@ -60,7 +61,8 @@ impl CommandRunner for ClusterSettings {
                         ansible::list_hosts(self)
                     },
                     &InventorySubCommand::Show(ref _options) => {
-                        AnsibleCommand::new("gather_facts", false, self.host_pattern.clone())
+                        //AnsibleCommand::new("gather_facts", false, self.host_pattern.clone())
+                        AnsiblePlaybook::load(SHOW_HOSTS_DETAILS_COMMAND_PLAYBOOK)
                             .run(self)
                     }
                 }
